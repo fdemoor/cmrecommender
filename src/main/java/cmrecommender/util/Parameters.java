@@ -16,12 +16,14 @@ public class Parameters {
   
   private static final Logger log = LoggerFactory.getLogger(Parameters.class);
   
-  private String dataset = "datasets/test.csv";
-  private int nbFolds = 5;
+  /* Parameters with default values */
+  private String dataset = "datasets/test.csv"; // Path to dataset
+  private int nbFolds = 5; // Number of folds in cross validation
   
   public Parameters(String[] line) {
   
     CommandLine commandLine;
+    CommandLineParser parser = new DefaultParser();
     Options options = new Options();
     
     Option helpOpt = OptionBuilder.withArgName("help")
@@ -41,14 +43,12 @@ public class Parameters {
       .create("N");
     options.addOption(nbFoldsOpt);
     
-    CommandLineParser parser = new DefaultParser();
-    
     try {
       commandLine = parser.parse(options, line);
       
       if (commandLine.hasOption("help")) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "cmrecommender", options );
+        formatter.printHelp("cmrecommender", options);
       }
       
       if (commandLine.hasOption("dataset")) {

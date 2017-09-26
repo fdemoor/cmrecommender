@@ -32,10 +32,8 @@ class EvaluateRecommender {
       RecommenderBuilder builder = new EvaluateRecommenderBuilder(itemSimilarity);
       double result = evaluator.evaluate(builder, null, dataModel, params.getNbFolds(), 1.0);
       
-    } catch (Exception ex) { System.out.println(ex.getMessage()); }
+    } catch (Exception ex) { log.error("{}", ex.getMessage()); }
     
   }
-  
-  
   
 }

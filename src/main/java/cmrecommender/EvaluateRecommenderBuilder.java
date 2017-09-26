@@ -16,7 +16,7 @@ class EvaluateRecommenderBuilder implements RecommenderBuilder {
   
   private static final Logger log = LoggerFactory.getLogger(EvaluateRecommenderBuilder.class);
     
-  ItemSimilarity itemSimilarity;
+  private final ItemSimilarity itemSimilarity;
   
   EvaluateRecommenderBuilder(ItemSimilarity sim) {
     itemSimilarity = sim;
