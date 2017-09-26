@@ -20,13 +20,15 @@ autoScalaLibrary := false
 
 javacOptions += "-Xlint:unchecked"
 
-// library dependencies. (orginization name) % (project name) % (version)
-libraryDependencies ++= Seq(
-)
+// https://mvnrepository.com/artifact/com.google.guava/guava
+libraryDependencies += "com.google.guava" % "guava" % "23.0"
 
-//javacOptions in (Compile,doc) ++= Seq("-doclet", "info.leadinglight.umljavadoclet.UmlJavaDoclet", "-docletpath", "src/main/resources/uml-java-doclet-1.0-SNAPSHOT.jar")
-javacOptions in (Compile,doc) ++= Seq(
-  "-doclet", "nl.talsmasoftware.umldoclet.UMLDoclet",
-  "-docletpath", "lib/umldoclet-1.0.9.jar",
-  "-umlIncludePrivateFields", "true"
-)
+// https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+libraryDependencies += "org.apache.commons" % "commons-math3" % "3.6.1"
+
+// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25"
+
+// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25"
+
