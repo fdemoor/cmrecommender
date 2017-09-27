@@ -34,3 +34,6 @@ libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25"
 
 // https://mvnrepository.com/artifact/commons-cli/commons-cli
 libraryDependencies += "commons-cli" % "commons-cli" % "1.4"
+
+// https://mvnrepository.com/artifact/net.sf.trove4j/trove4j
+libraryDependencies += "net.sf.trove4j" % "trove4j" % "3.0.3"
