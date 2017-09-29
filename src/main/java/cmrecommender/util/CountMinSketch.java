@@ -7,6 +7,8 @@ import java.lang.Math;
 
 import gnu.trove.list.array.TDoubleArrayList;
 
+import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +39,7 @@ public class CountMinSketch {
    * 
    * @throws  CountMinSketch.CMException  If delta or epsilon are not in the unit interval
    */
-  public CountMinSketch(double delta, double epsilon, int k) throws CMException {
+  public CountMinSketch(double delta, double epsilon) throws CMException {
     
     if (delta <= 0 || delta >= 1) {
       throw new CMException("delta must be between 0 and 1, exclusive");
@@ -61,6 +63,18 @@ public class CountMinSketch {
     
   }
   
+  /** Returns the value in a given cell of the sketch
+   * 
+   * @param i   Row index
+   * @param j   Column index
+   * 
+   * @return  Value in cell at i-th row and j-th column
+   * 
+   */
+  private double get(int i, int j) {
+    return count.get(j + i * w);
+  }
+  
   /** Updates the sketch for the item with name of key by the amount specified in increment
    * 
    * @param key         The item to update the value of in the sketch
@@ -70,7 +84,7 @@ public class CountMinSketch {
   public void update(long key, double increment) {
     for (int i = 0; i < d; i++) {
       int j = hashFunctions[i].hash(key);
-      double value = count.get(j + i * w);
+      double value = get(i, j);
       count.set(j + i * w, value + increment);
       log.debug("Update value row {} column {}: previous value {}, new value {}", i, j, value, value + increment);
     }
@@ -92,12 +106,60 @@ public class CountMinSketch {
     double estimate = Double.MAX_VALUE;
     for (int i = 0; i < d; i++) {
       int j = hashFunctions[i].hash(key);
-      double value = count.get(j + i * w);
+      double value = get(i, j);
       if (value < estimate) { estimate = value; }
     }
     log.debug("Estimate value for key {} is {}", key, estimate);
     return estimate;
   }
+  
+  /** Computes an approximate cosine between two count-min sketches
+   *  The two count-min sketches must have the same size
+   *  The value returned can be > 1
+   * 
+   * @param a   Count-min sketch (epsilon, delta)
+   * @param b   Count-min sketch (epsilon, delta)
+   * 
+   * @return  Cosine approximation
+   *
+   */
+  public static double cosine(CountMinSketch a, CountMinSketch b) {
+    
+    /* Check both count-min sketches have same size */
+    Preconditions.checkArgument(a.w == b.w, "Widths of a (%s) and b (%s) must be the same", a.w, b.w);
+    Preconditions.checkArgument(a.d == b.d, "Depths of a (%s) and b (%s) must be the same", a.d, b.d);
+    
+    double sumA = Double.MAX_VALUE;
+    double sumB = Double.MAX_VALUE;
+    double sumAB = Double.MAX_VALUE;
+    
+    for (int i = 0; i < a.d; i++) {
+      
+      double valueA = 0.0;
+      double valueB = 0.0;
+      double valueAB = 0.0;
+      
+      for (int j = 0; j < a.w; j++) {
+        double xa = a.get(i, j);
+        double xb = b.get(i, j);
+        valueA += xa * xa;
+        valueB += xb * xb;
+        valueAB += xa * xb;
+      }
+      
+      if (valueA < sumA) { sumA = valueA; }
+      if (valueB < sumB) { sumB = valueB; }
+      if (valueAB < sumAB) { sumAB = valueAB; }
+      
+    }
+    
+    log.info("Norm^2 of a is {}, norm^2 of b is {}, inner product is {}", sumA, sumB, sumAB);
+    
+    double denominator = Math.sqrt(sumA) * Math.sqrt(sumB);
+    if (denominator == 0) { return Double.NaN; }
+    return sumAB / denominator;
+  }
+  
   
   /** Returns a nice string representation of the count-min sketch content
    * 
@@ -110,7 +172,7 @@ public class CountMinSketch {
     for (int i = 0; i < d; i++) {
       builder.append("| ");
       for (int j = 0; j < w; j++) {
-        builder.append(count.get(j + i * w));
+        builder.append(get(i, j));
         builder.append(" | ");
       }
       builder.append(System.lineSeparator());

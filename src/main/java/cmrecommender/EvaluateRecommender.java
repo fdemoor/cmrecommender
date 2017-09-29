@@ -28,15 +28,21 @@ class EvaluateRecommender {
       
       Parameters params = new Parameters(args);
       
-      CountMinSketch cm = new CountMinSketch(0.1, 0.3, 10);
-      cm.update(1, 3.5);
-      cm.update(2, 4.2);
-      cm.update(3, 2.7);
-      cm.update(4, 3.1);
-      cm.update(5, 5.3);
-      cm.update(6, 9.8);
-      cm.update(7, 6.5);
-      log.info("{}", cm);
+      CountMinSketch cm1 = new CountMinSketch(0.1, 0.3);
+      CountMinSketch cm2 = new CountMinSketch(0.1, 0.3);
+      cm1.update(1, 3.5);
+      cm1.update(2, 4.2);
+      cm1.update(7, 2.7);
+      cm1.update(4, 3.1);
+      cm2.update(1, 5.3);
+      cm2.update(2, 9.8);
+      cm2.update(5, 6.5);
+      cm2.update(8, 8.2);
+      log.info("{}", cm1);
+      log.info("{}", cm2);
+      log.info("Cosine 1-1 is {}, 2-2 is {}, 1-2 is {}, 2-1 is {}", 
+        CountMinSketch.cosine(cm1, cm1), CountMinSketch.cosine(cm2, cm2), 
+        CountMinSketch.cosine(cm1, cm2), CountMinSketch.cosine(cm2, cm1));
       
       //DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       //RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
