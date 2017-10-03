@@ -29,8 +29,11 @@ libraryDependencies += "org.apache.commons" % "commons-math3" % "3.6.1"
 // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25"
 
-// https://mvnrepository.com/artifact/org.slf4j/slf4j-simple
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25"
+// https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
+libraryDependencies += "org.slf4j" % "slf4j-log4j12" % "1.7.25"
+
+// https://mvnrepository.com/artifact/log4j/log4j
+libraryDependencies += "log4j" % "log4j" % "1.2.17"
 
 // https://mvnrepository.com/artifact/commons-cli/commons-cli
 libraryDependencies += "commons-cli" % "commons-cli" % "1.4"
