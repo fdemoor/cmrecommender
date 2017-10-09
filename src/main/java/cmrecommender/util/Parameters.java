@@ -18,6 +18,7 @@ public class Parameters {
   
   /* Parameters with default values */
   private String dataset = "datasets/test.csv"; // Path to dataset
+  private long seed = 1267377627L; // Seed for PRNG
   private int nbFolds = 5; // Number of folds in cross validation
   
   public Parameters(String[] line) {
@@ -43,6 +44,12 @@ public class Parameters {
       .create("N");
     options.addOption(nbFoldsOpt);
     
+    Option seedOpt = OptionBuilder.withArgName("value")
+      .hasArgs(1)
+      .withDescription("Seed for PNRG")
+      .create("s");
+    options.addOption(seedOpt);
+    
     try {
       commandLine = parser.parse(options, line);
       
@@ -57,6 +64,10 @@ public class Parameters {
       
       if (commandLine.hasOption("N")) {
         nbFolds = Integer.parseInt(commandLine.getOptionValue("N"));
+      }
+      
+      if (commandLine.hasOption("s")) {
+        seed = Long.parseLong(commandLine.getOptionValue("s"));
       }
 
     } catch (ParseException exception) {
