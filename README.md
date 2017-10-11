@@ -11,4 +11,6 @@ The jars obtained after compilation of Mahout modules *mr* and *math* are to be 
 
 ### Installing and running
 
-The project is built using sbt. Type `sbt` to open the sbt shell, and then `compile` or `run`.
+The project is built using sbt. Type `sbt "compile"` to compile.
+
+A bash script is used to run, simply type `./run.sh`. Parameters can be changed by editing the values of some variables in the script.

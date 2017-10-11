@@ -8,13 +8,18 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.ParseException;
 
+import java.lang.StringBuilder;
+
 public class Parameters {
   
   /* Parameters with default values */
   private String dataset = "datasets/test.csv"; // Path to dataset
   private long seed = 1267377627L; // Seed for PRNG
   private int nbFolds = 5; // Number of folds in cross validation
-  private String outputDir = "output"; // Output directory for logs
+  private boolean useCM = false;
+  private double gamma = 0.1;
+  private double error = 1.0;
+  private int depth = 3;
   
   public Parameters(String[] line) throws ParseException {
   
@@ -56,6 +61,32 @@ public class Parameters {
       .build();
     options.addOption(outputOpt);
     
+    Option cmOpt = Option.builder("CM")
+      .desc("Use count-min sketch based cosine similarity")
+      .build();
+    options.addOption(cmOpt);
+    
+    Option gammaOpt = Option.builder("gamma")
+      .argName("value")
+      .hasArgs()
+      .desc("Gamma deniability")
+      .build();
+    options.addOption(gammaOpt);
+    
+    Option errorOpt = Option.builder("error")
+      .argName("value")
+      .hasArgs()
+      .desc("Error bound")
+      .build();
+    options.addOption(errorOpt);
+    
+    Option depthOpt = Option.builder("depth")
+      .argName("value")
+      .hasArgs()
+      .desc("Count-min sketch depth")
+      .build();
+    options.addOption(depthOpt);
+    
     commandLine = parser.parse(options, line);
     
     if (commandLine.hasOption("help")) {
@@ -75,9 +106,42 @@ public class Parameters {
       seed = Long.parseLong(commandLine.getOptionValue("s"));
     }
     
+    if (commandLine.hasOption("CM")) {
+      useCM = true;
+    }
+    
+    if (commandLine.hasOption("gamma")) {
+      gamma = Double.parseDouble(commandLine.getOptionValue("gamma"));
+    }
+    
+    if (commandLine.hasOption("error")) {
+      error = Double.parseDouble(commandLine.getOptionValue("error"));
+    }
+    
+    if (commandLine.hasOption("depth")) {
+      depth = Integer.parseInt(commandLine.getOptionValue("depth"));
+    }
+    
   }
   
   public String getDataset() { return dataset; }
   public int getNbFolds() { return nbFolds; }
+  public boolean useCM() { return useCM; }
+  public double getGamma() { return gamma; }
+  public double getError() { return error; }
+  public int getDepth() { return depth; }
+  
+  public String toString() {
+    StringBuilder bld = new StringBuilder();
+    String ln = System.getProperty("line.separator");
+    bld.append("Dataset path: " + dataset + ln);
+    bld.append("Seed: " + seed + ln);
+    bld.append("Number of folds: " + nbFolds + ln);
+    bld.append("Use CM: " + useCM + ln);
+    bld.append("Gamma: " + gamma + ln);
+    bld.append("Error bound: " + error + ln);
+    bld.append("Depth: " + depth + ln);
+    return bld.toString();
+  }
 
 }

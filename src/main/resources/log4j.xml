@@ -31,13 +31,28 @@
       </layout>
   </appender>
   
+  <appender name="params" class="org.apache.log4j.RollingFileAppender">
+      <param name="append" value="false"/>
+      <param name="maxFileSize" value="10MB"/>
+      <param name="maxBackupIndex" value="2"/>
+      <param name="file" value="${OUTPUT_DIR}/params.log"/>
+      <layout class="org.apache.log4j.PatternLayout">
+          <param name="ConversionPattern" value="%m%n"/>
+      </layout>
+  </appender>
+  
   <logger name="RMSE" additivity="false">
       <level value="INFO"/>
       <appender-ref ref="rmse"/>
   </logger>
+  
+  <logger name="PARAMS" additivity="false">
+      <level value="INFO"/>
+      <appender-ref ref="params"/>
+  </logger>
 
 	<root>
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="console" />
 		<appender-ref ref="logs" />
 	</root>
