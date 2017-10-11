@@ -33,11 +33,11 @@ class EvaluateRecommender {
       
       //UserSimilarity userSimilarity = new UncenteredCosineSimilarity(dataModel);
       
-      double gamma = 0.2;
-      double error = 0.05;
+      double gamma = 0.01;
+      double error = 3.0;
       int k = 10;
       
-      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(gamma, error);
+      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(gamma, error, 2);
       sketchConfig.configure(dataModel);
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();

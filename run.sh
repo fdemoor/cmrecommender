@@ -2,7 +2,7 @@
 
 echo "Retrieving parameters"
 
-DATASET_PATH=datasets/test3.csv
+DATASET_PATH=datasets/test.csv
 NB_FOLDS=10
 OUTPUT_DIRECTORY=output/test
 SEED=27638663697938
