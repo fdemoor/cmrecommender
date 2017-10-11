@@ -1,10 +1,12 @@
 package cmrecommender;
 
-import org.apache.mahout.cf.taste.similarity.ItemSimilarity;
+import org.apache.mahout.cf.taste.similarity.UserSimilarity;
+import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
+import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
-import org.apache.mahout.cf.taste.impl.recommender.GenericItemBasedRecommender;
+import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.recommender.Recommender;
 
 import java.io.File;
@@ -16,15 +18,18 @@ class EvaluateRecommenderBuilder implements RecommenderBuilder {
   
   private static final Logger log = LoggerFactory.getLogger(EvaluateRecommenderBuilder.class);
     
-  private final ItemSimilarity itemSimilarity;
+  private final UserSimilarity userSimilarity;
+  private final int k;
   
-  EvaluateRecommenderBuilder(ItemSimilarity sim) {
-    itemSimilarity = sim;
+  EvaluateRecommenderBuilder(UserSimilarity sim, int sizeNeighborhood) {
+    userSimilarity = sim;
+    k = sizeNeighborhood;
   }
   
   @Override
   public Recommender buildRecommender(DataModel dataModel) throws TasteException {
-    return new GenericItemBasedRecommender(dataModel, itemSimilarity);
+    UserNeighborhood neighborhood = new NearestNUserNeighborhood(k, userSimilarity, dataModel);
+    return new GenericUserBasedRecommender(dataModel, neighborhood, userSimilarity);
   }
   
 }

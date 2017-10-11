@@ -19,6 +19,7 @@ crossPaths := false
 autoScalaLibrary := false
 
 javacOptions += "-Xlint:unchecked"
+javacOptions += "-Xlint:deprecation"
 
 // https://mvnrepository.com/artifact/com.google.guava/guava
 libraryDependencies += "com.google.guava" % "guava" % "23.0"

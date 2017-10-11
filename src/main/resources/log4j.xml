@@ -14,7 +14,7 @@
 	    <param name="append" value="false" />
 	    <param name="maxFileSize" value="10MB" />
 	    <param name="maxBackupIndex" value="10" />
-	    <param name="file" value="output/logs.log" />
+	    <param name="file" value="${OUTPUT_DIR}/logs.log" />
 	    <layout class="org.apache.log4j.PatternLayout">
         <param name="ConversionPattern"
 			value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
@@ -25,13 +25,13 @@
       <param name="append" value="false"/>
       <param name="maxFileSize" value="10MB"/>
       <param name="maxBackupIndex" value="2"/>
-      <param name="file" value="output/rmse.csv"/>
+      <param name="file" value="${OUTPUT_DIR}/rmse.csv"/>
       <layout class="org.apache.log4j.PatternLayout">
           <param name="ConversionPattern" value="%m%n"/>
       </layout>
   </appender>
   
-  <logger name="cmrecommender.EvaluateRecommender" additivity="false">
+  <logger name="RMSE" additivity="false">
       <level value="INFO"/>
       <appender-ref ref="rmse"/>
   </logger>
