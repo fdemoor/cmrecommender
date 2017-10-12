@@ -18,6 +18,10 @@ import org.apache.commons.cli.ParseException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.lang.Runnable;
+import java.lang.Thread;
+import java.lang.InterruptedException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +45,59 @@ class EvaluateRecommender {
   }
   
   private static void runKEval(DataModel dataModel, Parameters params) throws TasteException {
+    log.info("Start RMSE evaluation with different k");
     UserSimilarity userSimilarity = getUserSimilarity(dataModel, params);
     RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
     int[] kValues = {1, 2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
+    ArrayList<Thread> threads = new ArrayList<Thread>(12);
+    Logger logRMSE = LoggerFactory.getLogger("RMSE");
+    int n = params.getNbFolds();
     for (int k : kValues) {
-      RecommenderBuilder builder = new EvaluateRecommenderBuilder(userSimilarity, k);
-      double result = evaluator.evaluate(builder, null, dataModel, params.getNbFolds(), 1.0);
-      Logger logRMSE = LoggerFactory.getLogger("RMSE");
-      logRMSE.info("{},{}", result, k);
+      log.info("Start evaluation for k={} in new thread", k);
+      Thread t = new Thread(new runKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
+      threads.add(t);
+      t.start();
     }
+    for (Thread t : threads) {
+      try {
+        t.join();
+      } catch (InterruptedException ex) {
+        log.error("InterruptedException: {}", ex.getMessage());
+      }
+    }
+    log.info("End of RMSE evaluation with different k");
+  }
+  
+  static class runKEval implements Runnable {
+    
+    private final int kValue;
+    private final UserSimilarity userSimilarity;
+    private final Logger logRMSE;
+    private final DataModel dataModel;
+    private final RecommenderEvaluator evaluator;
+    private final int nbFolds;
+    
+    runKEval(int k, UserSimilarity sim, Logger logger, DataModel model, RecommenderEvaluator eval, int n) {
+      kValue = k;
+      userSimilarity = sim;
+      logRMSE = logger;
+      dataModel = model;
+      evaluator = eval;
+      nbFolds = n;
+    }
+    
+    public void run() {
+      try {
+        RecommenderBuilder builder = new EvaluateRecommenderBuilder(userSimilarity, kValue);
+        double result = evaluator.evaluate(builder, null, dataModel, nbFolds, 1.0);
+        synchronized(logRMSE) {
+          logRMSE.info("{},{}", result, kValue);
+        }
+      } catch (TasteException ex) {
+        log.error("TasteException: {}", ex.getMessage());
+      }
+    }
+    
   }
   
   public static void main(String[] args) {
