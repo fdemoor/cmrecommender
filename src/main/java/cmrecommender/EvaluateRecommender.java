@@ -13,6 +13,7 @@ import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
 import org.apache.mahout.cf.taste.impl.similarity.UncenteredCosineSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.CosineCM;
 import org.apache.mahout.cf.taste.impl.common.CountMinSketchConfig;
+import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
 
 import org.apache.commons.cli.ParseException;
 
@@ -101,6 +102,18 @@ class EvaluateRecommender {
     
   }
   
+  private static void runProfileDistEval(DataModel dataModel) throws TasteException {
+    log.info("Start evaluation of profile distribution");
+    Logger logPDIST = LoggerFactory.getLogger("PDIST");
+    LongPrimitiveIterator it = dataModel.getUserIDs();
+    while (it.hasNext()) {
+      long userID = it.next();
+      int l = dataModel.getPreferencesFromUser(userID).length();
+      logPDIST.info("{}", l);
+    }
+    log.info("End of evaluation of profile distribution");
+  }
+  
   public static void main(String[] args) {
     
     try {
@@ -111,7 +124,8 @@ class EvaluateRecommender {
       
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
-      runKEval(dataModel, params);
+      //runKEval(dataModel, params);
+      runProfileDistEval(dataModel);
       
     } catch (TasteException ex) {
       log.error("TasteException: {}", ex.getMessage());
