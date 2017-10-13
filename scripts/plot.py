@@ -12,7 +12,7 @@ SIM_LABEL = "Similarity metric"
 
 SIM_LABELS = {"cosine": "cos", "cosineCM": "cosCM"}
 
-basedir = "../output"
+basedir = "../output/ml-100k"
 filename = "rmse.csv"
 
 
@@ -69,7 +69,7 @@ def main():
 
     f1, ax1 = plt.subplots(1, 1, figsize=(10, 6))
 
-    dirs = ["cosine_kEval", "cosine_kEval2"]
+    dirs = ["cosine_kEval"]
     plotK(ax1, dirs)
     
     plt.legend()

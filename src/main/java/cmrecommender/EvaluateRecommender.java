@@ -34,7 +34,7 @@ class EvaluateRecommender {
     UserSimilarity userSimilarity = null;
     if (params.useCM()) {
       CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), params.getError(), params.getDepth());
-      sketchConfig.configure(dataModel);
+      sketchConfig.configure(dataModel, params.getDataset());
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();
       userSimilarity = new CosineCM(dataModel, epsilon, delta);
@@ -57,8 +57,9 @@ class EvaluateRecommender {
       Thread t = new Thread(new runKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
       threads.add(t);
       t.start();
-    }
-    for (Thread t : threads) {
+    //} // Not sure parallelism here is needed, evaluation is already multi-threaded
+        // Can too many threads slow down the program? Lot of context switch
+    //for (Thread t : threads) { 
       try {
         t.join();
       } catch (InterruptedException ex) {
