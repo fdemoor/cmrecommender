@@ -48,7 +48,7 @@ class EvaluateRecommender {
     log.info("Start RMSE evaluation with different k");
     UserSimilarity userSimilarity = getUserSimilarity(dataModel, params);
     RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
-    int[] kValues = {1, 2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
+    int[] kValues = {2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
     ArrayList<Thread> threads = new ArrayList<Thread>(12);
     Logger logRMSE = LoggerFactory.getLogger("RMSE");
     int n = params.getNbFolds();
