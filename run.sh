@@ -1,24 +1,38 @@
 #!/bin/bash
 
-echo "Retrieving parameters"
+
+################################################################################
+# Parameters with argument, change the values below if needed                  #
+################################################################################
 
 DATASET_PATH=datasets/test.csv
-NB_FOLDS=10
+                  # Path to the dataset .csv file
+NB_FOLDS=10       # Number of folds in RMSE cross-validation
 OUTPUT_DIRECTORY=output/test/cosine_kEval
-SEED=27638663697938
-USE_CM=1
-GAMMA=0.01
-ERROR=10.0
-DEPTH=3
+                  # Path to the folder where to output logs
+SEED=7263789638   # Seed for PRNG (currently not used)
+GAMMA=0.01        # Gamma value required if CM sketches are used
+ERROR=10.0        # Error value required if CM skeches are used
+DEPTH=3           # Depth value if CM sketches are used
+
+################################################################################
+# Boolean parameters, comment a line to remove the associated option           #
+################################################################################
+
+CM="-CM"          # Use count-min sketch based similarity, cosine otherwise
+#PDIST="-pDist"    # Compute profile size distribution of the dataset
+KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
+
+
+################################################################################
+# Create necessary folders if not existing                                     #
+# Generate the parameter string                                               #
+# Set some JVM options                                                         #
+# Run the experiment                                                           #
+################################################################################
 
 mkdir -p "ser"
 mkdir -p $OUTPUT_DIRECTORY
-
-if [ "$USE_CM" -eq "1" ]; then
-  CM="-CM"
-else
-  CM=""
-fi
 
 params="
 -d $DATASET_PATH
@@ -28,10 +42,14 @@ $CM
 -depth $DEPTH
 -gamma $GAMMA
 -error $ERROR
+$PDIST
+$KEVAL
 "
 
 export SBT_OPTS="-Xmx256M -Xms256M"
 
-echo "Running"
+echo "Running.."
 
 sbt "-DOUTPUT_DIR=$OUTPUT_DIRECTORY" "run $params"
+
+echo "Done."

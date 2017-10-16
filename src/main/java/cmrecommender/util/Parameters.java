@@ -20,6 +20,8 @@ public class Parameters {
   private double gamma = 0.1;
   private double error = 1.0;
   private int depth = 3;
+  private boolean pDist = false;
+  private boolean runK = false;
   
   public Parameters(String[] line) throws ParseException {
   
@@ -87,6 +89,16 @@ public class Parameters {
       .build();
     options.addOption(depthOpt);
     
+    Option pDistOpt = Option.builder("pDist")
+      .desc("Compute profile size distribution of the dataset")
+      .build();
+    options.addOption(pDistOpt);
+    
+    Option runKOpt = Option.builder("runK")
+      .desc("Run evaluation with different k (as in kNN) values")
+      .build();
+    options.addOption(runKOpt);
+    
     commandLine = parser.parse(options, line);
     
     if (commandLine.hasOption("help")) {
@@ -122,6 +134,14 @@ public class Parameters {
       depth = Integer.parseInt(commandLine.getOptionValue("depth"));
     }
     
+    if (commandLine.hasOption("pDist")) {
+      pDist = true;
+    }
+    
+    if (commandLine.hasOption("runK")) {
+      runK = true;
+    }
+    
   }
   
   public String getDataset() { return dataset; }
@@ -130,6 +150,8 @@ public class Parameters {
   public double getGamma() { return gamma; }
   public double getError() { return error; }
   public int getDepth() { return depth; }
+  public boolean runProfileDist() { return pDist; }
+  public boolean runKEvaluation() { return runK; }
   
   public String toString() {
     StringBuilder bld = new StringBuilder();
@@ -141,6 +163,8 @@ public class Parameters {
     bld.append("Gamma: " + gamma + ln);
     bld.append("Error bound: " + error + ln);
     bld.append("Depth: " + depth + ln);
+    bld.append("Run profile size distribution: " + pDist + ln);
+    bld.append("Run k evaluation: " + runK + ln);
     return bld.toString();
   }
 

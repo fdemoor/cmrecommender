@@ -124,8 +124,8 @@ class EvaluateRecommender {
       
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
-      //runKEval(dataModel, params);
-      runProfileDistEval(dataModel);
+      if (params.runProfileDist()) { runProfileDistEval(dataModel); }
+      if (params.runKEvaluation()) { runKEval(dataModel, params); }
       
     } catch (TasteException ex) {
       log.error("TasteException: {}", ex.getMessage());
