@@ -10,8 +10,6 @@ RMSE_LABEL = "RMSE"
 K_LABEL = "k (size of neighborhood)"
 SIM_LABEL = "Similarity metric"
 
-SIM_LABELS = {"cosine": "cos", "cosineCM": "cosCM"}
-
 basedir = "../output/ml-100k"
 filename = "rmse.csv"
 
@@ -51,7 +49,7 @@ def plotK(ax, dirs):
   
   for directory in dirs:
     
-    label = SIM_LABELS[directory.split("_")[0]]
+    label = directory[0:directory.rfind("_")].replace("cosine", "cos").replace("_", "-")
     path = basedir + "/" + directory + "/" + filename
     data = parseKFile(path)
     npData = np.array(data)
@@ -69,10 +67,11 @@ def main():
 
     f1, ax1 = plt.subplots(1, 1, figsize=(10, 6))
 
-    dirs = ["cosine_kEval"]
+    dirs = ["cosine_kEval", "cosineCM_0.5_5.0_3_kEval", "cosineCM_0.1_2.0_6_kEval", "cosineCM_0.01_1.0_6_kEval",
+            "cosineCM_0.8_100.0_21_kEval", "cosineCM_0.000001_1000.0_11_kEval"]
     plotK(ax1, dirs)
     
-    plt.legend()
+    plt.legend(loc=4)
 
     sns.despine(offset=10, trim=True)
     f1.tight_layout(h_pad=3)
