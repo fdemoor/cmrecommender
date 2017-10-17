@@ -10,7 +10,7 @@ import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluatorKFold;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
-import org.apache.mahout.cf.taste.impl.similarity.UCosineSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.CosineSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.CosineCM;
 import org.apache.mahout.cf.taste.impl.common.CountMinSketchConfig;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
