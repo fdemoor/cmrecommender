@@ -10,7 +10,7 @@ import org.apache.mahout.cf.taste.eval.RecommenderBuilder;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.eval.RMSRecommenderEvaluatorKFold;
 import org.apache.mahout.cf.taste.eval.RecommenderEvaluator;
-import org.apache.mahout.cf.taste.impl.similarity.UncenteredCosineSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.UCosineSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.CosineCM;
 import org.apache.mahout.cf.taste.impl.common.CountMinSketchConfig;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
@@ -41,7 +41,7 @@ class EvaluateRecommender {
       double delta = sketchConfig.getDelta();
       userSimilarity = new CosineCM(dataModel, epsilon, delta);
     } else {
-      userSimilarity = new UncenteredCosineSimilarity(dataModel);
+      userSimilarity = new CosineSimilarity(dataModel);
     }
     return userSimilarity;
   }
@@ -162,11 +162,11 @@ class EvaluateRecommender {
   private static void runErrorWidthEval(DataModel dataModel, Parameters params) throws TasteException {
     log.info("Start evaluation error / width");
     Logger logEW = LoggerFactory.getLogger("EW");
-    UserSimilarity sim = new UncenteredCosineSimilarity(dataModel);
+    UserSimilarity sim = new CosineSimilarity(dataModel);
     double delta = Math.exp(- (double) params.getDepth());
     int A = 10, B = 1000, H = 25;
     ArrayList<Thread> threads = new ArrayList<Thread>((B - A) / H + 1);
-    for (int width = 10; width < 1000; width += 25) {
+    for (int width = A; width < B; width += H) {
       log.info("Processing width {} in a new thread", width);
       Thread t = new Thread(new RunErrorWidthEval(dataModel, width, delta, logEW, sim));
       threads.add(t);
