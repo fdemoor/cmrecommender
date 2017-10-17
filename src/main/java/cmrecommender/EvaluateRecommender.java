@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.lang.Runnable;
 import java.lang.Thread;
 import java.lang.InterruptedException;
+import java.lang.Math;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ class EvaluateRecommender {
     int n = params.getNbFolds();
     for (int k : kValues) {
       log.info("Start evaluation for k={} in new thread", k);
-      Thread t = new Thread(new runKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
+      Thread t = new Thread(new RunKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
       threads.add(t);
       t.start();
     //} // Not sure parallelism here is needed, evaluation is already multi-threaded
@@ -70,7 +71,7 @@ class EvaluateRecommender {
     log.info("End of RMSE evaluation with different k");
   }
   
-  static class runKEval implements Runnable {
+  static class RunKEval implements Runnable {
     
     private final int kValue;
     private final UserSimilarity userSimilarity;
@@ -79,7 +80,7 @@ class EvaluateRecommender {
     private final RecommenderEvaluator evaluator;
     private final int nbFolds;
     
-    runKEval(int k, UserSimilarity sim, Logger logger, DataModel model, RecommenderEvaluator eval, int n) {
+    RunKEval(int k, UserSimilarity sim, Logger logger, DataModel model, RecommenderEvaluator eval, int n) {
       kValue = k;
       userSimilarity = sim;
       logRMSE = logger;
@@ -102,6 +103,7 @@ class EvaluateRecommender {
     
   }
   
+  
   private static void runProfileDistEval(DataModel dataModel) throws TasteException {
     log.info("Start evaluation of profile distribution");
     Logger logPDIST = LoggerFactory.getLogger("PDIST");
@@ -113,6 +115,73 @@ class EvaluateRecommender {
     }
     log.info("End of evaluation of profile distribution");
   }
+  
+  
+  static class RunErrorWidthEval implements Runnable {
+    
+    private final DataModel dataModel;
+    private final double epsilon;
+    private final double delta;
+    private final int width;
+    private final Logger logEW;
+    private final UserSimilarity sim;
+    
+    RunErrorWidthEval(DataModel model, int w, double del, Logger logger, UserSimilarity cosSim) {
+      dataModel = model;
+      width = w;
+      epsilon = Math.exp(1) / (double) width;
+      delta = del;
+      logEW = logger;
+      sim = cosSim;
+    }
+    
+    public void run() {
+      try {
+        UserSimilarity simCM = new CosineCM(dataModel, epsilon, delta);
+        LongPrimitiveIterator it1 = dataModel.getUserIDs();
+        while (it1.hasNext()) {
+          long userID1 = it1.next();
+          LongPrimitiveIterator it2 = dataModel.getUserIDs();
+          while (it2.hasNext()) {
+            long userID2 = it2.next();
+            double refValue = sim.userSimilarity(userID1, userID2);
+            double value = simCM.userSimilarity(userID1, userID2);
+            double error = Math.abs(refValue - value);
+            synchronized(logEW) {
+              logEW.info("{},{}", error, width);
+            }
+          }
+        }
+      } catch (TasteException ex) {
+        log.error("TasteException: {}", ex.getMessage());
+      }
+    }
+  }
+  
+  
+  private static void runErrorWidthEval(DataModel dataModel, Parameters params) throws TasteException {
+    log.info("Start evaluation error / width");
+    Logger logEW = LoggerFactory.getLogger("EW");
+    UserSimilarity sim = new UncenteredCosineSimilarity(dataModel);
+    double delta = Math.exp(- (double) params.getDepth());
+    int A = 10, B = 1000, H = 25;
+    ArrayList<Thread> threads = new ArrayList<Thread>((B - A) / H + 1);
+    for (int width = 10; width < 1000; width += 25) {
+      log.info("Processing width {} in a new thread", width);
+      Thread t = new Thread(new RunErrorWidthEval(dataModel, width, delta, logEW, sim));
+      threads.add(t);
+      t.start();
+    }
+    for (Thread t : threads) { 
+      try {
+        t.join();
+      } catch (InterruptedException ex) {
+        log.error("InterruptedException: {}", ex.getMessage());
+      }
+    }
+    log.info("End of evaluation error / width");
+  }
+  
   
   public static void main(String[] args) {
     
@@ -126,6 +195,7 @@ class EvaluateRecommender {
       
       if (params.runProfileDist()) { runProfileDistEval(dataModel); }
       if (params.runKEvaluation()) { runKEval(dataModel, params); }
+      if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params); }
       
     } catch (TasteException ex) {
       log.error("TasteException: {}", ex.getMessage());

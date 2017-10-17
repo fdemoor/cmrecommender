@@ -8,12 +8,12 @@
 DATASET_PATH=datasets/test.csv
                   # Path to the dataset .csv file
 NB_FOLDS=10       # Number of folds in RMSE cross-validation
-OUTPUT_DIRECTORY=output/test/cosine_kEval
-                  # Path to the folder where to output logs
 SEED=7263789638   # Seed for PRNG (currently not used)
 GAMMA=0.01        # Gamma value required if CM sketches are used
 ERROR=10.0        # Error value required if CM skeches are used
 DEPTH=3           # Depth value if CM sketches are used
+OUTPUT_DIRECTORY=output/test/cosine_kEval
+                  # Path to the folder where to output logs
 
 ################################################################################
 # Boolean parameters, comment a line to remove the associated option           #
@@ -21,7 +21,8 @@ DEPTH=3           # Depth value if CM sketches are used
 
 CM="-CM"          # Use count-min sketch based similarity, cosine otherwise
 #PDIST="-pDist"    # Compute profile size distribution of the dataset
-KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
+#KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
+EWEVAL="-runEW"   # Run error / width evaluation
 
 
 ################################################################################
@@ -44,6 +45,7 @@ $CM
 -error $ERROR
 $PDIST
 $KEVAL
+$EWEVAL
 "
 
 export SBT_OPTS="-Xmx256M -Xms256M"
