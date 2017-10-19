@@ -19,7 +19,6 @@ public class Parameters {
   private boolean useCM = false;
   private double gamma = 0.1;
   private double error = 1.0;
-  private int depth = 3;
   private boolean pDist = false;
   private boolean runK = false;
   private boolean runEW = false;
@@ -83,13 +82,6 @@ public class Parameters {
       .build();
     options.addOption(errorOpt);
     
-    Option depthOpt = Option.builder("depth")
-      .argName("value")
-      .hasArgs()
-      .desc("Count-min sketch depth")
-      .build();
-    options.addOption(depthOpt);
-    
     Option pDistOpt = Option.builder("pDist")
       .desc("Compute profile size distribution of the dataset")
       .build();
@@ -136,10 +128,6 @@ public class Parameters {
       error = Double.parseDouble(commandLine.getOptionValue("error"));
     }
     
-    if (commandLine.hasOption("depth")) {
-      depth = Integer.parseInt(commandLine.getOptionValue("depth"));
-    }
-    
     if (commandLine.hasOption("pDist")) {
       pDist = true;
     }
@@ -159,7 +147,6 @@ public class Parameters {
   public boolean useCM() { return useCM; }
   public double getGamma() { return gamma; }
   public double getError() { return error; }
-  public int getDepth() { return depth; }
   public boolean runProfileDist() { return pDist; }
   public boolean runKEvaluation() { return runK; }
   public boolean runEWEvaluation() { return runEW; }
@@ -173,7 +160,6 @@ public class Parameters {
     bld.append("Use CM: " + useCM + ln);
     bld.append("Gamma: " + gamma + ln);
     bld.append("Error bound: " + error + ln);
-    bld.append("Depth: " + depth + ln);
     bld.append("Run profile size distribution: " + pDist + ln);
     bld.append("Run k evaluation: " + runK + ln);
     bld.append("Run error / width evaluation: " + runEW + ln);

@@ -32,10 +32,18 @@ class EvaluateRecommender {
   
   private static final Logger log = LoggerFactory.getLogger(EvaluateRecommender.class);
   
+  
+  /** Returns the similarity based on the parameters asked
+   *  
+   *  @param    dataModel     dataset
+   *  @param    params        parameters
+   * 
+   *  @return   user similarity
+   */
   private static UserSimilarity getUserSimilarity(DataModel dataModel, Parameters params) throws TasteException {
     UserSimilarity userSimilarity = null;
     if (params.useCM()) {
-      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), params.getError(), params.getDepth());
+      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), params.getError());
       sketchConfig.configure(dataModel, params.getDataset());
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();
@@ -46,30 +54,10 @@ class EvaluateRecommender {
     return userSimilarity;
   }
   
-  private static void runKEval(DataModel dataModel, Parameters params) throws TasteException {
-    log.info("Start RMSE evaluation with different k");
-    UserSimilarity userSimilarity = getUserSimilarity(dataModel, params);
-    RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
-    int[] kValues = {2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
-    ArrayList<Thread> threads = new ArrayList<Thread>(12);
-    Logger logRMSE = LoggerFactory.getLogger("RMSE");
-    int n = params.getNbFolds();
-    for (int k : kValues) {
-      log.info("Start evaluation for k={} in new thread", k);
-      Thread t = new Thread(new RunKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
-      threads.add(t);
-      t.start();
-    //} // Not sure parallelism here is needed, evaluation is already multi-threaded
-        // Can too many threads slow down the program? Lot of context switch
-    //for (Thread t : threads) { 
-      try {
-        t.join();
-      } catch (InterruptedException ex) {
-        log.error("InterruptedException: {}", ex.getMessage());
-      }
-    }
-    log.info("End of RMSE evaluation with different k");
-  }
+  
+  /*****************************************************************************
+   * RMSE EVALUATION WITH DIFFERENT VALUES OF k
+   ****************************************************************************/
   
   static class RunKEval implements Runnable {
     
@@ -103,7 +91,33 @@ class EvaluateRecommender {
     
   }
   
+  /** Run RMSE evaluation for different values of k (as in kNN) */
+  private static void runKEval(DataModel dataModel, Parameters params) throws TasteException {
+    log.info("Start RMSE evaluation with different k");
+    UserSimilarity userSimilarity = getUserSimilarity(dataModel, params);
+    RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
+    int[] kValues = {2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
+    Logger logRMSE = LoggerFactory.getLogger("RMSE");
+    int n = params.getNbFolds();
+    for (int k : kValues) {
+      log.info("Start evaluation for k={} in new thread", k);
+      Thread t = new Thread(new RunKEval(k, userSimilarity, logRMSE, dataModel, evaluator, n));
+      t.start();
+      try {
+        t.join();
+      } catch (InterruptedException ex) {
+        log.error("InterruptedException: {}", ex.getMessage());
+      }
+    }
+    log.info("End of RMSE evaluation with different k");
+  }
   
+  
+  /*****************************************************************************
+   * EVALUATION OF PROFILE SIZE DISTRIBUTION IN THE DATASET
+   ****************************************************************************/
+  
+  /** Run the evaluation of the profile size distribution in the dataset */
   private static void runProfileDistEval(DataModel dataModel) throws TasteException {
     log.info("Start evaluation of profile distribution");
     Logger logPDIST = LoggerFactory.getLogger("PDIST");
@@ -116,6 +130,10 @@ class EvaluateRecommender {
     log.info("End of evaluation of profile distribution");
   }
   
+  
+  /*****************************************************************************
+   * EVALUATION OF THE ERROR BETWEEN COSINE AND COSINECM FOR DIFFERENT WIDTHS
+   ****************************************************************************/
   
   static class RunErrorWidthEval implements Runnable {
     
@@ -144,11 +162,13 @@ class EvaluateRecommender {
           LongPrimitiveIterator it2 = dataModel.getUserIDs();
           while (it2.hasNext()) {
             long userID2 = it2.next();
-            double refValue = sim.userSimilarity(userID1, userID2);
-            double value = simCM.userSimilarity(userID1, userID2);
-            double error = Math.abs(refValue - value);
-            synchronized(logEW) {
-              logEW.info("{},{}", error, width);
+            if ((userID1 + userID2) % 100 == 0) { // Consider only some couples
+              double refValue = sim.userSimilarity(userID1, userID2);
+              double value = simCM.userSimilarity(userID1, userID2);
+              double error = Math.abs(refValue - value);
+              synchronized(logEW) {
+                logEW.info("{},{}", error, width);
+              }
             }
           }
         }
@@ -158,12 +178,12 @@ class EvaluateRecommender {
     }
   }
   
-  
+  /** Run the evaluation of the error bewteen cosine and cosineCM with different widths */
   private static void runErrorWidthEval(DataModel dataModel, Parameters params) throws TasteException {
     log.info("Start evaluation error / width");
     Logger logEW = LoggerFactory.getLogger("EW");
     UserSimilarity sim = new CosineSimilarity(dataModel);
-    double delta = Math.exp(- (double) params.getDepth());
+    double delta = Math.exp(- 11.0);
     int A = 10, B = 1000, H = 25;
     ArrayList<Thread> threads = new ArrayList<Thread>((B - A) / H + 1);
     for (int width = A; width < B; width += H) {
@@ -183,16 +203,23 @@ class EvaluateRecommender {
   }
   
   
+  /*****************************************************************************
+   * MAIN
+   ****************************************************************************/
+   
   public static void main(String[] args) {
     
     try {
       
+      /* Retrieve and log the parameters */
       Parameters params = new Parameters(args);
       Logger logPARAMS = LoggerFactory.getLogger("PARAMS");
       logPARAMS.info("{}", params);
       
+      /* Load the dataset */
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
+      /* Run the different evaluations requested */
       if (params.runProfileDist()) { runProfileDistEval(dataModel); }
       if (params.runKEvaluation()) { runKEval(dataModel, params); }
       if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params); }
