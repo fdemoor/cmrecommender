@@ -44,7 +44,8 @@ class EvaluateRecommender {
   private static UserSimilarity getUserSimilarity(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
     UserSimilarity userSimilarity = null;
     if (params.useCM()) {
-      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), params.getError());
+      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), 
+                                                                   params.getBetaC(), params.getBetaP());
       sketchConfig.configure(dataModel, params.getDataset());
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();

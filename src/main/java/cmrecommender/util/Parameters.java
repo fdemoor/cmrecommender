@@ -17,8 +17,9 @@ public class Parameters {
   private long seed = 1267377627L; // Seed for PRNG
   private int nbFolds = 5; // Number of folds in cross validation
   private boolean useCM = false;
-  private double gamma = 0.1;
-  private double error = 1.0;
+  private double gamma = 0.5;
+  private double betaC = 0.4;
+  private double betaP = 0.3;
   private boolean pDist = false;
   private boolean runK = false;
   private boolean runEW = false;
@@ -75,12 +76,19 @@ public class Parameters {
       .build();
     options.addOption(gammaOpt);
     
-    Option errorOpt = Option.builder("error")
+    Option betaCOpt = Option.builder("bc")
       .argName("value")
       .hasArgs()
-      .desc("Error bound")
+      .desc("Cosine query error bound")
       .build();
-    options.addOption(errorOpt);
+    options.addOption(betaCOpt);
+    
+     Option betaPOpt = Option.builder("bp")
+      .argName("value")
+      .hasArgs()
+      .desc("Point query error bound")
+      .build();
+    options.addOption(betaPOpt);
     
     Option pDistOpt = Option.builder("pDist")
       .desc("Compute profile size distribution of the dataset")
@@ -124,8 +132,12 @@ public class Parameters {
       gamma = Double.parseDouble(commandLine.getOptionValue("gamma"));
     }
     
-    if (commandLine.hasOption("error")) {
-      error = Double.parseDouble(commandLine.getOptionValue("error"));
+    if (commandLine.hasOption("bc")) {
+      betaC = Double.parseDouble(commandLine.getOptionValue("bc"));
+    }
+    
+    if (commandLine.hasOption("bp")) {
+      betaP = Double.parseDouble(commandLine.getOptionValue("bp"));
     }
     
     if (commandLine.hasOption("pDist")) {
@@ -147,7 +159,8 @@ public class Parameters {
   public boolean useCM() { return useCM; }
   public long getSeed() { return seed; }
   public double getGamma() { return gamma; }
-  public double getError() { return error; }
+  public double getBetaC() { return betaC; }
+  public double getBetaP() { return betaP; }
   public boolean runProfileDist() { return pDist; }
   public boolean runKEvaluation() { return runK; }
   public boolean runEWEvaluation() { return runEW; }
@@ -160,7 +173,8 @@ public class Parameters {
     bld.append("Number of folds: " + nbFolds + ln);
     bld.append("Use CM: " + useCM + ln);
     bld.append("Gamma: " + gamma + ln);
-    bld.append("Error bound: " + error + ln);
+    bld.append("betaC: " + betaC + ln);
+    bld.append("betaP: " + betaP + ln);
     bld.append("Run profile size distribution: " + pDist + ln);
     bld.append("Run k evaluation: " + runK + ln);
     bld.append("Run error / width evaluation: " + runEW + ln);
