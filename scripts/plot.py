@@ -21,7 +21,7 @@ filename = "rmse.csv"
 class Markers:
   
   def __init__(self):
-    self.markerList = ["s", "o", "d", "v", "<"]
+    self.markerList = ["s", "o", "v", "<", "D", "p", ">", "*", "8"]
     self.index = 0
   
   def nextMarker(self):
@@ -61,17 +61,21 @@ def plotK(ax, dirs):
 
 def main():
 
+    dirs = ["cosine_evalK",
+            "cosineCM_231x11_evalK", "cosineCM_331x11_evalK", "cosineCM_463x11_evalK",
+            "cosineCM_654x11_evalK", "cosineCM_967x11_evalK", "cosineCM_231x21_evalK",
+            "cosineCM_331x21_evalK"]
+
     sns.set(font_scale=2)
     sns.set_style("whitegrid")
-    sns.set_palette(sns.color_palette("hls", 8))
+    sns.set_palette(sns.color_palette("hls", len(dirs)))
 
     f1, ax1 = plt.subplots(1, 1, figsize=(10, 6))
 
-    dirs = ["cosine_kEval", "cosineCM_0.5_5.0_3_kEval", "cosineCM_0.1_2.0_6_kEval", "cosineCM_0.01_1.0_6_kEval",
-            "cosineCM_0.8_100.0_21_kEval", "cosineCM_0.000001_1000.0_11_kEval"]
+    
     plotK(ax1, dirs)
     
-    plt.legend(loc=4)
+    plt.legend()
 
     sns.despine(offset=10, trim=True)
     f1.tight_layout(h_pad=3)
