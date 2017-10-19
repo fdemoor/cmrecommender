@@ -8,7 +8,7 @@
 DATASET_PATH=datasets/test.csv
                   # Path to the dataset .csv file
 NB_FOLDS=10       # Number of folds in RMSE cross-validation
-SEED=7263789638   # Seed for PRNG (currently not used)
+SEED="7263789638L"   # Seed for PRNG (currently not used)
 GAMMA=0.01        # Gamma value required if CM sketches are used
 ERROR=10.0        # Error value required if CM skeches are used
 DEPTH=3           # Depth value if CM sketches are used

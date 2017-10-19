@@ -145,6 +145,7 @@ public class Parameters {
   public String getDataset() { return dataset; }
   public int getNbFolds() { return nbFolds; }
   public boolean useCM() { return useCM; }
+  public long getSeed() { return seed; }
   public double getGamma() { return gamma; }
   public double getError() { return error; }
   public boolean runProfileDist() { return pDist; }

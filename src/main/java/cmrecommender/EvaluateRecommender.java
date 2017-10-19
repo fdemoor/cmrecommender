@@ -14,6 +14,7 @@ import org.apache.mahout.cf.taste.impl.similarity.CosineSimilarity;
 import org.apache.mahout.cf.taste.impl.similarity.CosineCM;
 import org.apache.mahout.cf.taste.impl.common.CountMinSketchConfig;
 import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.common.HashFunctionBuilder;
 
 import org.apache.commons.cli.ParseException;
 
@@ -40,14 +41,14 @@ class EvaluateRecommender {
    * 
    *  @return   user similarity
    */
-  private static UserSimilarity getUserSimilarity(DataModel dataModel, Parameters params) throws TasteException {
+  private static UserSimilarity getUserSimilarity(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
     UserSimilarity userSimilarity = null;
     if (params.useCM()) {
       CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), params.getError());
       sketchConfig.configure(dataModel, params.getDataset());
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();
-      userSimilarity = new CosineCM(dataModel, epsilon, delta);
+      userSimilarity = new CosineCM(dataModel, epsilon, delta, hfBuilder);
     } else {
       userSimilarity = new CosineSimilarity(dataModel);
     }
@@ -92,9 +93,9 @@ class EvaluateRecommender {
   }
   
   /** Run RMSE evaluation for different values of k (as in kNN) */
-  private static void runKEval(DataModel dataModel, Parameters params) throws TasteException {
+  private static void runKEval(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
     log.info("Start RMSE evaluation with different k");
-    UserSimilarity userSimilarity = getUserSimilarity(dataModel, params);
+    UserSimilarity userSimilarity = getUserSimilarity(dataModel, params, hfBuilder);
     RecommenderEvaluator evaluator = new RMSRecommenderEvaluatorKFold();
     int[] kValues = {2, 5, 8, 10, 12, 15, 20, 30, 50, 75, 100};
     Logger logRMSE = LoggerFactory.getLogger("RMSE");
@@ -143,19 +144,22 @@ class EvaluateRecommender {
     private final int width;
     private final Logger logEW;
     private final UserSimilarity sim;
+    private final HashFunctionBuilder hfBuilder;
     
-    RunErrorWidthEval(DataModel model, int w, double del, Logger logger, UserSimilarity cosSim) {
+    RunErrorWidthEval(DataModel model, int w, double del, Logger logger,
+                      UserSimilarity cosSim, HashFunctionBuilder hfBuilder_) {
       dataModel = model;
       width = w;
       epsilon = Math.exp(1) / (double) width;
       delta = del;
       logEW = logger;
       sim = cosSim;
+      hfBuilder = hfBuilder_;
     }
     
     public void run() {
       try {
-        UserSimilarity simCM = new CosineCM(dataModel, epsilon, delta);
+        UserSimilarity simCM = new CosineCM(dataModel, epsilon, delta, hfBuilder);
         LongPrimitiveIterator it1 = dataModel.getUserIDs();
         while (it1.hasNext()) {
           long userID1 = it1.next();
@@ -179,7 +183,7 @@ class EvaluateRecommender {
   }
   
   /** Run the evaluation of the error bewteen cosine and cosineCM with different widths */
-  private static void runErrorWidthEval(DataModel dataModel, Parameters params) throws TasteException {
+  private static void runErrorWidthEval(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
     log.info("Start evaluation error / width");
     Logger logEW = LoggerFactory.getLogger("EW");
     UserSimilarity sim = new CosineSimilarity(dataModel);
@@ -188,7 +192,7 @@ class EvaluateRecommender {
     ArrayList<Thread> threads = new ArrayList<Thread>((B - A) / H + 1);
     for (int width = A; width < B; width += H) {
       log.info("Processing width {} in a new thread", width);
-      Thread t = new Thread(new RunErrorWidthEval(dataModel, width, delta, logEW, sim));
+      Thread t = new Thread(new RunErrorWidthEval(dataModel, width, delta, logEW, sim, hfBuilder));
       threads.add(t);
       t.start();
     }
@@ -216,13 +220,15 @@ class EvaluateRecommender {
       Logger logPARAMS = LoggerFactory.getLogger("PARAMS");
       logPARAMS.info("{}", params);
       
+      HashFunctionBuilder hfBuilder = new HashFunctionBuilder(params.getSeed());
+      
       /* Load the dataset */
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
       /* Run the different evaluations requested */
       if (params.runProfileDist()) { runProfileDistEval(dataModel); }
-      if (params.runKEvaluation()) { runKEval(dataModel, params); }
-      if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params); }
+      if (params.runKEvaluation()) { runKEval(dataModel, params, hfBuilder); }
+      if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params, hfBuilder); }
       
     } catch (TasteException ex) {
       log.error("TasteException: {}", ex.getMessage());
