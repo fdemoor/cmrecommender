@@ -1,10 +1,11 @@
 import numpy as np
 import random
 import os
+import cPickle as pickle
 
 import sketch
 import opti
-import run_plot
+import results
 
 apiFileName = lambda x: 'datasets/' + x + '.csv'
 output = 'output_CSDMC/'
@@ -23,7 +24,7 @@ def runSimulation(api, u, q, datasets):
   n = len(pairs)
   if n == 0:
     return (float('NaN'), float('NaN'), float('NaN'), float('NaN'), float('NaN'), float('NaN'), float('NaN'))
-  w, d = getSize(n, u, q)
+  w, d = opti.getSize(n, u, q)
   eps = np.exp(1) / w
   delta = np.exp(-d)
   print api, "n =", n, "u =", u, "q =", q, "width =", w, "depth =", d
@@ -61,6 +62,7 @@ indexList = np.arange(len(qList))
 APIs = np.array(['GetDiskFreeSpaceA', 'RegDeleteValueA', 'LoadLibraryExA',
       'GetProcessHeap', 'RegQueryValueExA', 'LoadLibraryW', 'RegCreateKeyExW',
       'HeapAlloc', 'RegOpenKeyExW'])
+
 apiList = np.arange(len(APIs))
       
 datasets = {}
@@ -86,18 +88,11 @@ run_vect = np.vectorize(runSimulation)
 Z = run_vect(index2api_vect(X), U, Y, datasets)
 
 names = ['error_inserted', 'gamma', 'beta', 'size', 'width', 'depth', 'fmeasure', 'proba_inserted']
-run_plot.plot_init()
+Zs = [Z[:][:][i] for i in range(len(names))]
 
-for i in range(len(names)):
-  
-  f, ax = run_plot.run_plot(XX, YY, Z[:][:][i], names[i])
-    
-  ax.set_xlabel("API")
-  ax.set_xticks(apiList)
-  ax.set_xticklabels(APIs, rotation=70)
-  
-  ax.set_ylabel("Priority")
-  ax.set_yticks(indexList)
-  ax.set_yticklabels(["F" + str(q)[:4] for q in qList])
-  
-  run_plot.save_plot(f, output + names[i], '')
+r = results.Results(output, names, XX, YY, Zs)
+r.setX("Number of exported keys", apiList, APIs)
+r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
+
+with open(output + "data.p", "wb") as f:
+  pickle.dump(r, f)

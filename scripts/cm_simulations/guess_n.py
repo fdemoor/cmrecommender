@@ -6,13 +6,19 @@ import math
 import random
 import string
 import sys
+import os
+import cPickle as pickle
 
 import sketch
 import opti
+import results
 
 MAX_N = 378
 #U = 1125752
 U = 1000
+
+output = 'output_guess_n/'
+os.system('mkdir -p ' + output)
 
 
 def runSimulation(n, u, q):
@@ -73,18 +79,11 @@ N = np.array(U / nList, dtype=int)
 Z = zfunc(N, U, Y)
 
 names = ['error']
-run_plot.plot_init()
+Zs = [Z[:][:][i] for i in range(len(names))]
 
-for i in range(len(names)):
-  
-  f, ax = run_plot.run_plot(XX, YY, Z[:][:][i], names[i])
-    
-  #ax.set_xlabel("Number of exported keys (Total number of keys = " + str(U) + ")")
-  ax.set_xlabel("Total number of keys / Number of exported keys")
-  ax.set_ylabel("Priority")
-  ax.set_yticks(indexList)
-  ax.set_yticklabels(["F" + str(q)[:4] for q in qList])
-  xticklabels = ax.get_xticklabels()
-  xticklabels[0].set_visible(False)
-  
-  run_plot.save_plot(f, names[i], '_guess_n')
+r = results.Results(output, names, XX, YY, Zs)
+r.setX("Number of exported keys")
+r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
+
+with open(output + "data.p", "wb") as f:
+  pickle.dump(r, f)

@@ -67,6 +67,6 @@ def run_plot(X, Y, Z, name):
   
   return f, ax
   
-def save_plot(f, name, ext):
+def save_plot(f, name):
   f.tight_layout(h_pad=3)
-  f.savefig(name + ext + 'svg')
+  f.savefig(name + '.svg')

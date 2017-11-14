@@ -3,22 +3,21 @@ import random
 import string
 import os
 from threading import Thread, RLock
+import cPickle as pickle
 
 import sketch
 import opti
-import run_plot
+import results
 
 output = 'output_random/'
 os.system('mkdir -p ' + output)
 
-#U = 1125752
 U = 1000
 MAX_N = U
 
 lock = RLock()
 
 class OneSimulation(Thread):
-  
   
   def __init__(self, n, u, delta, eps, results, index):
     Thread.__init__(self)
@@ -73,8 +72,6 @@ class OneSimulation(Thread):
       self.results[self.index, 1] = totalInserted
       self.results[self.index, 2] = errorNotInserted
       self.results[self.index, 3] = totalNotInserted
-      
-      #print "thread", self.index, "results:", errorInserted, totalInserted, errorNotInserted, totalNotInserted
 
 
 def runSimulation(n, u, q):
@@ -107,8 +104,6 @@ def runSimulation(n, u, q):
   meanErrorInserted = sum(results[:,0]) / sum(results[:,1])
   meanErrorNotInserted = sum(results[:,2]) / sum(results[:,3])
   
-  #print "reduced results:", sum(results[:,0]), sum(results[:,1]), sum(results[:,2]), sum(results[:,3])
-  
   gamma = opti.gammaDeniability(w, d, n, u)
   beta = opti.pointErrorProba(w, d, n)
   size = w * d
@@ -136,18 +131,11 @@ zfunc = np.vectorize(runSimulation)
 Z = zfunc(nList, U, Y)
 
 names = ['error_inserted', 'error_not_inserted', 'gamma', 'beta', 'size', 'width', 'depth', 'fmeasure', 'proba_inserted']
-run_plot.plot_init()
+Zs = [Z[:][:][i] for i in range(len(names))]
 
-for i in range(len(names)):
-  
-  f, ax = run_plot.run_plot(XX, YY, Z[:][:][i], names[i])
- 
-  ax.set_xlabel("Number of exported keys (Total number of keys = " + str(U) + ")")
-  #ax.set_xlabel("Total number of keys / Number of exported keys")
-  ax.set_ylabel("Priority")
-  ax.set_yticks(indexList)
-  ax.set_yticklabels(["F" + str(q)[:4] for q in qList])
-  xticklabels = ax.get_xticklabels()
-  xticklabels[0].set_visible(False)
+r = results.Results(output, names, XX, YY, Zs)
+r.setX("Number of exported keys")
+r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
 
-  run_plot.save_plot(f, output + names[i], '')
+with open(output + "data.p", "wb") as f:
+  pickle.dump(r, f)
