@@ -9,10 +9,10 @@ import sketch
 import opti
 import results
 
-output = 'output_random/'
+output = 'output/random/'
 os.system('mkdir -p ' + output)
 
-U = 1000
+U = 663
 MAX_N = U
 
 lock = RLock()

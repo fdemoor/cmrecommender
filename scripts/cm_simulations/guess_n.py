@@ -17,7 +17,7 @@ MAX_N = 378
 #U = 1125752
 U = 1000
 
-output = 'output_guess_n/'
+output = 'output/guess_n/'
 os.system('mkdir -p ' + output)
 
 

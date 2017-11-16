@@ -16,7 +16,7 @@ cmaps = {       'error_inserted': 'coolwarm',
                 'fmeasure': 'RdYlGn',
                 'proba_inserted': 'RdYlGn_r' }
 
-thresholds = {  'error_inserted': False,
+thresholds = {  'error_inserted': True,
                 'error_not_inserted': False,
                 'error': False,
                 'gamma': True,
@@ -27,11 +27,11 @@ thresholds = {  'error_inserted': False,
                 'fmeasure': True,
                 'proba_inserted': True }
           
-scales = {      'error_inserted': 2500,
+scales = {      'error_inserted': 1500,
                 'error_not_inserted': 400,
                 'error': 1000,
                 'gamma': 400,
-                'beta': 2000,
+                'beta': 1500,
                 'size': 1,
                 'width': 2,
                 'depth': 20,

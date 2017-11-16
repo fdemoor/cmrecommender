@@ -15,7 +15,7 @@ MAX_N = 378
 #U = 1125752
 U = 1000
 
-output = 'output_random_cos/'
+output = 'output/random_cos/'
 os.system('mkdir -p ' + output)
 
 

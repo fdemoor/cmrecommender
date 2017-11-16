@@ -5,7 +5,7 @@ import os
 
 import opti
 
-output = 'output_probaDen/'
+output = 'output/probaDen/'
 os.system('mkdir -p ' + output)
 
 ### MAIN
