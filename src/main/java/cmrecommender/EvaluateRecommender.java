@@ -122,18 +122,20 @@ class EvaluateRecommender {
   private static void runDistEval(DataModel dataModel, Parameters params) throws TasteException {
     log.info("Start evaluation of profile distribution");
     Logger logDIST = LoggerFactory.getLogger("DIST");
-    int u = dataModel.getNumItems();
+    int u = dataModel.getNumItems(), n = 0, w = 0, d = 0;
+    if (params.useCM()) {
+			CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
+			sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
+			double epsilon = sketchConfig.getEpsilon();
+			double delta = sketchConfig.getDelta();
+			w = (int) Math.ceil(Math.exp(1) / epsilon);
+			d = (int) Math.ceil(Math.log(1 / delta));
+		}
     LongPrimitiveIterator it = dataModel.getUserIDs();
     while (it.hasNext()) {
       long userID = it.next();
-      int n = dataModel.getPreferencesFromUser(userID).length();
+      n = dataModel.getPreferencesFromUser(userID).length();
       if (params.useCM()) {
-				CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
-				sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
-				double epsilon = sketchConfig.getEpsilon();
-				double delta = sketchConfig.getDelta();
-				int w = (int) Math.ceil(Math.exp(1) / epsilon);
-				int d = (int) Math.ceil(Math.log(1 / delta));
 				double beta = CountMinSketchConfig.probaNotExactRetrieve(w, d, n);
 				double p = CountMinSketchConfig.probaInserted(w, d, n, u);
 				double fmeasure = CountMinSketchConfig.Fmeasure(w, d, n, u, params.getQ());
