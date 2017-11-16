@@ -10,11 +10,9 @@ DATASET_PATH=datasets/ml-100k/ratings.csv
                   # Path to the dataset .csv file
 NB_FOLDS=10       # Number of folds in RMSE cross-validation
 SEED=7263789638   # Seed for PRNG (currently not used)
-GAMMA=0.01        # Gamma value required if CM sketches are used
-BETAC=0.40        # Cosine error value required if CM skeches are used
-BETAP=0.30        # Point error value required if CM skeches are used
-OUTPUT_DIRECTORY=output/test/cosineCM_${GAMMA}_${BETAC}_${BETAP}_kEval
-#OUTPUT_DIRECTORY=output/test/cosine_kEval
+q=1.0        # Privacy/accuracy trade-off parameter
+OUTPUT_DIRECTORY=output/ml-100k/cosineCM_${q}_dist
+#OUTPUT_DIRECTORY=output/ml-100k/cosine_kEval
                   # Path to the folder where to output logs
 
 ################################################################################
@@ -22,8 +20,8 @@ OUTPUT_DIRECTORY=output/test/cosineCM_${GAMMA}_${BETAC}_${BETAP}_kEval
 ################################################################################
 
 CM="-CM"          # Use count-min sketch based similarity, cosine otherwise
-#PDIST="-pDist"    # Compute profile size distribution of the dataset
-KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
+DIST="-runDist"    # Compute several distributions of the dataset
+#KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
 #EWEVAL="-runEW"   # Run error / width evaluation
 
 
@@ -42,10 +40,8 @@ params="
 -N $NB_FOLDS
 -s $SEED
 $CM
--gamma $GAMMA
--bc $BETAC
--bp $BETAP
-$PDIST
+-q $q
+$DIST
 $KEVAL
 $EWEVAL
 "

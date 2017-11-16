@@ -44,9 +44,8 @@ class EvaluateRecommender {
   private static UserSimilarity getUserSimilarity(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
     UserSimilarity userSimilarity = null;
     if (params.useCM()) {
-      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getGamma(), 
-                                                                   params.getBetaC(), params.getBetaP());
-      sketchConfig.configure(dataModel, params.getDataset());
+      CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
+      sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
       double epsilon = sketchConfig.getEpsilon();
       double delta = sketchConfig.getDelta();
       userSimilarity = new CosineCM(dataModel, epsilon, delta, hfBuilder);
@@ -116,18 +115,32 @@ class EvaluateRecommender {
   
   
   /*****************************************************************************
-   * EVALUATION OF PROFILE SIZE DISTRIBUTION IN THE DATASET
+   * EVALUATION OF SEVERAL DISTRIBUTIONS IN THE DATASET
    ****************************************************************************/
   
   /** Run the evaluation of the profile size distribution in the dataset */
-  private static void runProfileDistEval(DataModel dataModel) throws TasteException {
+  private static void runDistEval(DataModel dataModel, Parameters params) throws TasteException {
     log.info("Start evaluation of profile distribution");
-    Logger logPDIST = LoggerFactory.getLogger("PDIST");
+    Logger logDIST = LoggerFactory.getLogger("DIST");
+    int u = dataModel.getNumItems();
     LongPrimitiveIterator it = dataModel.getUserIDs();
     while (it.hasNext()) {
       long userID = it.next();
-      int l = dataModel.getPreferencesFromUser(userID).length();
-      logPDIST.info("{}", l);
+      int n = dataModel.getPreferencesFromUser(userID).length();
+      if (params.useCM()) {
+				CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
+				sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
+				double epsilon = sketchConfig.getEpsilon();
+				double delta = sketchConfig.getDelta();
+				int w = (int) Math.ceil(Math.exp(1) / epsilon);
+				int d = (int) Math.ceil(Math.log(1 / delta));
+				double beta = CountMinSketchConfig.probaNotExactRetrieve(w, d, n);
+				double p = CountMinSketchConfig.probaInserted(w, d, n, u);
+				double fmeasure = CountMinSketchConfig.Fmeasure(w, d, n, u, params.getQ());
+				logDIST.info("{},{},{},{}", n, beta, p, fmeasure);
+			} else {
+				logDIST.info("{}", n);
+			}
     }
     log.info("End of evaluation of profile distribution");
   }
@@ -227,7 +240,7 @@ class EvaluateRecommender {
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
       /* Run the different evaluations requested */
-      if (params.runProfileDist()) { runProfileDistEval(dataModel); }
+      if (params.runDistEvaluation()) { runDistEval(dataModel, params); }
       if (params.runKEvaluation()) { runKEval(dataModel, params, hfBuilder); }
       if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params, hfBuilder); }
       

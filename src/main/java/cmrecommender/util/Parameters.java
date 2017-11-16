@@ -17,10 +17,8 @@ public class Parameters {
   private long seed = 1267377627L; // Seed for PRNG
   private int nbFolds = 5; // Number of folds in cross validation
   private boolean useCM = false;
-  private double gamma = 0.5;
-  private double betaC = 0.4;
-  private double betaP = 0.3;
-  private boolean pDist = false;
+  private double q = 1.0;
+  private boolean runDist = false;
   private boolean runK = false;
   private boolean runEW = false;
   
@@ -69,29 +67,15 @@ public class Parameters {
       .build();
     options.addOption(cmOpt);
     
-    Option gammaOpt = Option.builder("gamma")
+    Option qOpt = Option.builder("q")
       .argName("value")
       .hasArgs()
-      .desc("Gamma deniability")
+      .desc("Privacy/accuracy trade-off parameter")
       .build();
-    options.addOption(gammaOpt);
+    options.addOption(qOpt);
     
-    Option betaCOpt = Option.builder("bc")
-      .argName("value")
-      .hasArgs()
-      .desc("Cosine query error bound")
-      .build();
-    options.addOption(betaCOpt);
-    
-     Option betaPOpt = Option.builder("bp")
-      .argName("value")
-      .hasArgs()
-      .desc("Point query error bound")
-      .build();
-    options.addOption(betaPOpt);
-    
-    Option pDistOpt = Option.builder("pDist")
-      .desc("Compute profile size distribution of the dataset")
+    Option pDistOpt = Option.builder("runDist")
+      .desc("Compute several distributions of the dataset")
       .build();
     options.addOption(pDistOpt);
     
@@ -128,20 +112,12 @@ public class Parameters {
       useCM = true;
     }
     
-    if (commandLine.hasOption("gamma")) {
-      gamma = Double.parseDouble(commandLine.getOptionValue("gamma"));
+    if (commandLine.hasOption("q")) {
+      q = Double.parseDouble(commandLine.getOptionValue("q"));
     }
     
-    if (commandLine.hasOption("bc")) {
-      betaC = Double.parseDouble(commandLine.getOptionValue("bc"));
-    }
-    
-    if (commandLine.hasOption("bp")) {
-      betaP = Double.parseDouble(commandLine.getOptionValue("bp"));
-    }
-    
-    if (commandLine.hasOption("pDist")) {
-      pDist = true;
+    if (commandLine.hasOption("runDist")) {
+      runDist = true;
     }
     
     if (commandLine.hasOption("runK")) {
@@ -158,10 +134,8 @@ public class Parameters {
   public int getNbFolds() { return nbFolds; }
   public boolean useCM() { return useCM; }
   public long getSeed() { return seed; }
-  public double getGamma() { return gamma; }
-  public double getBetaC() { return betaC; }
-  public double getBetaP() { return betaP; }
-  public boolean runProfileDist() { return pDist; }
+  public double getQ() { return q; }
+  public boolean runDistEvaluation() { return runDist; }
   public boolean runKEvaluation() { return runK; }
   public boolean runEWEvaluation() { return runEW; }
   
@@ -172,10 +146,8 @@ public class Parameters {
     bld.append("Seed: " + seed + ln);
     bld.append("Number of folds: " + nbFolds + ln);
     bld.append("Use CM: " + useCM + ln);
-    bld.append("Gamma: " + gamma + ln);
-    bld.append("betaC: " + betaC + ln);
-    bld.append("betaP: " + betaP + ln);
-    bld.append("Run profile size distribution: " + pDist + ln);
+    bld.append("Value of q: " + q + ln);
+    bld.append("Run several distributions: " + runDist + ln);
     bld.append("Run k evaluation: " + runK + ln);
     bld.append("Run error / width evaluation: " + runEW + ln);
     return bld.toString();

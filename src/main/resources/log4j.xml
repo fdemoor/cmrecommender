@@ -41,11 +41,11 @@
       </layout>
   </appender>
   
-  <appender name="pdist" class="org.apache.log4j.RollingFileAppender">
+  <appender name="dist" class="org.apache.log4j.RollingFileAppender">
       <param name="append" value="false"/>
       <param name="maxFileSize" value="10MB"/>
       <param name="maxBackupIndex" value="2"/>
-      <param name="file" value="${OUTPUT_DIR}/pdist.csv"/>
+      <param name="file" value="${OUTPUT_DIR}/dist.csv"/>
       <layout class="org.apache.log4j.PatternLayout">
           <param name="ConversionPattern" value="%m%n"/>
       </layout>
@@ -71,9 +71,9 @@
       <appender-ref ref="params"/>
   </logger>
   
-  <logger name="PDIST" additivity="false">
+  <logger name="DIST" additivity="false">
       <level value="INFO"/>
-      <appender-ref ref="pdist"/>
+      <appender-ref ref="dist"/>
   </logger>
   
   <logger name="EW" additivity="false">
