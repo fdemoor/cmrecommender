@@ -87,11 +87,11 @@ class Sketch:
             self.hash_functions.append(self.__generate_hash_function(i))
 
         if t == 0:
-            self.count = np.zeros((self.d, self.w), dtype='int32')
+            self.count = np.zeros((self.d, self.w), dtype='int32') - 1
             size = self.w * self.d * 4 / 1024.0 / 1024.0
         else:
             if t == 1:
-                self.count = np.zeros((self.d, self.w), dtype='float64')
+                self.count = np.zeros((self.d, self.w), dtype='float64') - 1.0
                 size = self.w * self.d * 8 / 1024.0 / 1024.0
             else:
                 raise ValueError("Type must be 0 or 1")
@@ -125,6 +125,8 @@ class Sketch:
             """
         for row, hash_function in enumerate(self.hash_functions):
             column = hash_function(abs(hash(key)))
+            if self.count[row, column] < 0:
+							self.count[row, column] = 0
             self.count[row, column] += increment
 
     def get(self, key):
@@ -169,7 +171,7 @@ class Sketch:
         L = []
         s = 0
         for i in range(self.w):
-          if self.at(i, j) > 0.0:
+          if self.at(i, j) > -1:
             s += 1
         L.append(s)
       return sum(L) / float(len(L))

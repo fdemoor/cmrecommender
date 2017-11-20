@@ -63,7 +63,7 @@ class OneSimulation(Thread):
     keys, values = self.genRandomPairs(100, 0)
     for j in range(100):
       x = s.get(keys[j])
-      if x != 0:
+      if x != -1:
         errorNotInserted += 1
       totalNotInserted += 1
     

@@ -42,7 +42,10 @@ def runSimulation(n, u, q, datasets):
   for pair in pairs:
     x = s.get(pair[0])
     y = pair[1]
-    errorInserted += abs(x - y) / float(y)
+    if y != 0:
+			errorInserted += abs(x - y) / float(y)
+		else:
+			errorInserted += abs(x - y)
     totalInserted += 1
       
   meanErrorInserted = errorInserted / float(totalInserted)
@@ -66,7 +69,7 @@ for filename in files:
   pairs = []
   with open(filename, 'r') as f:
     for line in f:
-			data = line.rstrip('\n').split(',')
+			data = line.rstrip('\n').rstrip('\r').split(',')
 			key = data[0]
 			value = int(data[1])
 			pairs.append((key, value))
