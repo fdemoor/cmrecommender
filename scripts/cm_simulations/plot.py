@@ -27,7 +27,7 @@ thresholds = {  'error_inserted': True,
                 'fmeasure': True,
                 'proba_inserted': True }
           
-scales = {      'error_inserted': 1500,
+scales = {      'error_inserted': 500,
                 'error_not_inserted': 400,
                 'error': 1000,
                 'gamma': 400,
@@ -59,9 +59,9 @@ def run_plot(X, Y, Z, name):
   f, ax = plt.subplots(1, 1, figsize=(10, 6))
   data = np.ma.masked_invalid(Z)
   if thresholds[name]:
-    im = ax.scatter(X, Y, c=data, cmap=cmaps[name], s=data * scales[name] + 20, vmax=1, vmin = 0)
+    im = ax.scatter(X, Y, c=data, cmap=cmaps[name], s=data * scales[name] + 20, vmax=1, vmin = 0, edgecolor='black', linewidth='1')
   else:
-    im = ax.scatter(X, Y, c=data, cmap=cmaps[name], s=data * scales[name] + 20)
+    im = ax.scatter(X, Y, c=data, cmap=cmaps[name], s=data * scales[name] + 20, edgecolor='black', linewidth='1')
   cbar = plt.colorbar(im)
   cbar.set_label(labels[name])
   

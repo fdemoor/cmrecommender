@@ -30,7 +30,7 @@ for i in range(len(r.names)):
   if r.yticks != []:
     ax.set_yticks(r.yticks)
   if r.xticklabels != []:
-    ax.set_xticklabels(r.xticklabels, rotation=40, ha='right')
+    ax.set_xticklabels(r.xticklabels, rotation=90, ha='right')
   if r.yticklabels != []:
     ax.set_yticklabels(r.yticklabels)
 

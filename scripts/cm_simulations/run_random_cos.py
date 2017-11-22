@@ -5,39 +5,57 @@ import math
 import random
 import string
 import os
+import sys
 import cPickle as pickle
+from threading import Thread, RLock
 
 import sketch
 import opti
 import results
 
-MAX_N = 378
-#U = 1125752
-U = 1000
+lock = RLock()
 
-output = 'output/random_cos/'
+if len(sys.argv) < 2:
+  print "Missing argument"
+  print "Usage: python run_random_cos.py <datasetFolder>"
+  exit(1)
+
+datasetFolder = sys.argv[1]
+print "Got dataset folder:", datasetFolder
+if not datasetFolder.endswith('/'):
+  datasetFolder = datasetFolder + '/'
+
+files = []
+for f in os.listdir(datasetFolder):
+  if f.endswith('.csv'):
+    files.append(datasetFolder + '/' + f)
+
+with open(datasetFolder + 'params.log', 'r') as f:
+  for line in f:
+    data = line.rstrip('\n').split(' ')
+    if data[0] == "u":
+      u = int(data[2])
+      break
+
+output = 'output/' + datasetFolder.replace('datasets/', '')
 os.system('mkdir -p ' + output)
 
 
-def genRandom(n):
-  """
-  Returns n random key-value pairs
-  
-  Keys are random sequence of 10 letters
-  Values are random floats in [1, 10]
-  """
-  keys = [''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(10)) for _ in range(n)]
-  values = np.random.rand(n) * 9 + 1
-  return keys, values
-  
-
-def cosine(a, b):
-  ab = np.inner(a, b)
-  aa = np.inner(a, a)
-  bb = np.inner(b, b)
-  if aa == 0.0 or bb == 0.0:
+def cosine(pa, pb):
+  ab = 0
+  aa = 0
+  bb = 0
+  for pair1 in pa:
+    aa += pair1[1] * pair1[1]
+    for pair2 in pb:
+      if pair1[0] == pair2[0]:
+        ab += pair1[1] * pair2[1]
+        break
+  for pair2 in pb:
+    bb += pair2[1] * pair2[1]
+  if aa == 0 or bb == 0:
     return float('NaN')
-  return ab / math.sqrt(aa * bb)
+  return ab / math.sqrt(float(aa * bb))
   
   
 def cosineCM(s1, s2, w, d):
@@ -59,79 +77,107 @@ def cosineCM(s1, s2, w, d):
   if minCos == sys.maxsize:
     return float('NaN')
   return minCos
+  
+ 
+class OneSimulation(Thread):
+	
+	def __init__(self, datasets, u, q, index, X, Y, Z, names):
+		Thread.__init__(self)
+		self.datasets = datasets
+		self.u = u
+		self.q = q
+		self.index = index
+		self.X = X
+		self.Y = Y
+		self.Y = Z
+		self.names = names
+		
+	def run(self):
+		for f1 in files:
+			for f2 in files:
+				if f1 != f2:
+					r = runSimulation(datasets, f1, f2, nValues[f1], u, q)
+					with lock:
+						X.append(nValues[f1])
+						Y.append(index)
+						for k in range(len(names)):
+							Z[k].append(r[k])
+		
 
-
-def runSimulation(n, u, q):
-  """
-  Run a simulation to compute an average error on the point-querry
-  """
+def runSimulation(datasets, f1, f2, n, u, q):
+  
+  pairs1 = datasets[f1]
+  pairs2 = datasets[f2]
+  
   w, d = opti.getSize(n, u, q)
   eps = np.exp(1) / w
   delta = np.exp(-d)
   print "n =", n, "u =", u, "q =", q, "width =", w, "depth =", d
   
   error = 0
-  total = 0
+
+  s1 = sketch.Sketch(delta, eps, 10000, 0)
+  s2 = sketch.Sketch(delta, eps, 10000, 0)
   
-  for k in range(5):
+  for pair in pairs1:
+      s1.update(pair[0], pair[1])
+  for pair in pairs2:
+      s2.update(pair[0], pair[1])
+      
+  y = cosine(pairs1, pairs2)
+  x = cosineCM(s1, s2, w, d)
   
-    for i in range(2, 10):
+  print "cosine is", y, "we got", x
+        
+  error += abs(x - y)
       
-      keys = [''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(10)) for _ in range(n)]
-      values1 = np.random.rand(n) * 9 + 1
-      values1 = np.where(np.random.rand(n) < i / 10.0, 0, values1)
-      values2 = np.random.rand(n) * 9 + 1
-      values2 = np.where(np.random.rand(n) < i / 10.0, 0, values2)
-    
-      s1 = sketch.Sketch(delta, eps, 10000, 1)
-      s2 = sketch.Sketch(delta, eps, 10000, 1)
-      
-      for j in range(len(keys)):
-        if values1[j] > 0:
-          s1.update(keys[j], values1[j])
-        if values2[j] > 0:
-          s2.update(keys[j], values2[j])
-          
-      y = cosine(values1, values2)
-      x = cosineCM(s1, s2, w, d)
-            
-      error += abs(x - y)
-      total += 1
-      
-  meanError = error / float(total)
   gamma = opti.gammaDeniability(w, d, n, u)
   beta = opti.pointErrorProba(w, d, n)
   size = w * d
   fmeasure = opti.Fmeasure(w, d, n, u, q)
       
-  return (meanError, gamma, beta, size, w, d, fmeasure)
-
+  return (error, gamma, beta, size, w, d, fmeasure)
 
 
 ### MAIN
 
-random.seed("1683726262826")
+nValues = {}
+datasets = {}
+for filename in files:
+  pairs = []
+  with open(filename, 'r') as f:
+    for line in f:
+      data = line.rstrip('\n').rstrip('\r').split(',')
+      key = data[0]
+      value = int(data[1])
+      pairs.append((key, value))
+  datasets[filename] = pairs
+  nValues[filename] = len(pairs)
 
-#nList = np.arange(1, MAX_N + 1, MAX_N / 25)
-nList = np.linspace(1, 6, 25)[1:]
 qList = np.array([1.0 / 4.0, 1.0 / 3.0, 0.5, 1.0, 2.0, 3.0, 4.0], dtype=float)
 indexList = np.arange(len(qList))
 
-X, Y = np.meshgrid(nList, qList)
-XX, YY = np.meshgrid(nList, indexList)
-
-zfunc = np.vectorize(runSimulation)
-N = np.array(U / nList, dtype=int)
-#Z = zfunc(nList, U, Y, 5)
-Z = zfunc(N, U, Y)
-
-
 names = ['error', 'gamma', 'beta', 'size', 'width', 'depth', 'fmeasure']
-Zs = [Z[:][:][i] for i in range(len(names))]
+X = []
+Y = []
+Z = [[] for k in range(len(names))]
 
-r = results.Results(output, names, XX, YY, Zs)
+threads = []
+for index in indexList:
+  q = qList[index]
+  thread = OneSimulation(datasets, u, q, index, X, Y, Z, names)
+  threads.append(thread)
+  thread.start()
+    
+for t in threads:
+	t.join()
+
+r = results.Results(output, names, X, Y, Z)
 r.setX("Number of exported keys")
 r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
 
 with open(output + "data.p", "wb") as f:
   pickle.dump(r, f)
+ 
+  
+  
