@@ -1,6 +1,4 @@
 import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 import math
 import random
 import string
@@ -93,15 +91,18 @@ class OneSimulation(Thread):
 		self.names = names
 		
 	def run(self):
+		i = 0
 		for f1 in files:
 			for f2 in files:
 				if f1 != f2:
-					r = runSimulation(datasets, f1, f2, nValues[f1], u, q)
+					i += 1
+					print "Progression:", i, "/", (len(files) - 1) ** 2
+					r = runSimulation(self.datasets, f1, f2, nValues[f1], self.u, self.q)
 					with lock:
-						X.append(nValues[f1])
-						Y.append(index)
-						for k in range(len(names)):
-							Z[k].append(r[k])
+						self.X.append(nValues[f1])
+						self.Y.append(self.index)
+						for k in range(len(self.names)):
+							self.Z[k].append(r[k])
 		
 
 def runSimulation(datasets, f1, f2, n, u, q):
@@ -112,7 +113,7 @@ def runSimulation(datasets, f1, f2, n, u, q):
   w, d = opti.getSize(n, u, q)
   eps = np.exp(1) / w
   delta = np.exp(-d)
-  print "n =", n, "u =", u, "q =", q, "width =", w, "depth =", d
+  #print "n =", n, "u =", u, "q =", q, "width =", w, "depth =", d
   
   error = 0
 
@@ -127,7 +128,7 @@ def runSimulation(datasets, f1, f2, n, u, q):
   y = cosine(pairs1, pairs2)
   x = cosineCM(s1, s2, w, d)
   
-  print "cosine is", y, "we got", x
+  #print "cosine is", y, "we got", x
         
   error += abs(x - y)
       

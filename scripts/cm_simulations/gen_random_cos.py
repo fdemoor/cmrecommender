@@ -5,9 +5,9 @@ import os
 import sys
 
 
-u = 10
-datasetId = 5
-sizeCorpus = 5
+u = 500
+datasetId = 1
+sizeCorpus = 100
 seed = 16837242
 
 output = 'datasets/random_cos/' + str(datasetId) + '/'
