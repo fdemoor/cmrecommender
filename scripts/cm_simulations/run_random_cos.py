@@ -79,15 +79,14 @@ def cosineCM(s1, s2, w, d):
  
 class OneSimulation(Thread):
 	
-	def __init__(self, datasets, u, q, index, X, Y, Z, names):
+	def __init__(self, datasets, u, q, X, Y, Z, names):
 		Thread.__init__(self)
 		self.datasets = datasets
 		self.u = u
 		self.q = q
-		self.index = index
 		self.X = X
 		self.Y = Y
-		self.Y = Z
+		self.Z = Z
 		self.names = names
 		
 	def run(self):
@@ -96,11 +95,11 @@ class OneSimulation(Thread):
 			for f2 in files:
 				if f1 != f2:
 					i += 1
-					print "Progression:", i, "/", (len(files) - 1) ** 2
+					print "Progression:", i, "/", (len(files) - 1) * len(files)
 					r = runSimulation(self.datasets, f1, f2, nValues[f1], self.u, self.q)
 					with lock:
 						self.X.append(nValues[f1])
-						self.Y.append(self.index)
+						self.Y.append(nValues[f2])
 						for k in range(len(self.names)):
 							self.Z[k].append(r[k])
 		
@@ -136,8 +135,9 @@ def runSimulation(datasets, f1, f2, n, u, q):
   beta = opti.pointErrorProba(w, d, n)
   size = w * d
   fmeasure = opti.Fmeasure(w, d, n, u, q)
+  p = opti.probaInserted(w, d, n, u)
       
-  return (error, gamma, beta, size, w, d, fmeasure)
+  return (error, gamma, beta, size, w, d, fmeasure, p)
 
 
 ### MAIN
@@ -155,27 +155,32 @@ for filename in files:
   datasets[filename] = pairs
   nValues[filename] = len(pairs)
 
-qList = np.array([1.0 / 4.0, 1.0 / 3.0, 0.5, 1.0, 2.0, 3.0, 4.0], dtype=float)
-indexList = np.arange(len(qList))
+#qList = np.array([1.0 / 4.0, 1.0 / 3.0, 0.5, 1.0, 2.0, 3.0, 4.0], dtype=float)
+#indexList = np.arange(len(qList))
 
-names = ['error', 'gamma', 'beta', 'size', 'width', 'depth', 'fmeasure']
+names = ['error', 'gamma', 'beta', 'size', 'width', 'depth', 'fmeasure', 'proba_inserted']
 X = []
 Y = []
 Z = [[] for k in range(len(names))]
 
-threads = []
-for index in indexList:
-  q = qList[index]
-  thread = OneSimulation(datasets, u, q, index, X, Y, Z, names)
-  threads.append(thread)
-  thread.start()
+#threads = []
+#for index in indexList:
+  #q = qList[index]
+  #thread = OneSimulation(datasets, u, q, index, X, Y, Z, names)
+  #threads.append(thread)
+  #thread.start()
     
-for t in threads:
-	t.join()
+#for t in threads:
+	#t.join()
+	
+thread = OneSimulation(datasets, u, 4.0, X, Y, Z, names)
+thread.start()
+thread.join()
 
 r = results.Results(output, names, X, Y, Z)
-r.setX("Number of exported keys")
-r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
+r.setX("Number of exported keys 1")
+r.setY("Number of exported keys 2")
+#r.setY("Priority", indexList, ["F" + str(q)[:4] for q in qList])
 
 with open(output + "data.p", "wb") as f:
   pickle.dump(r, f)
