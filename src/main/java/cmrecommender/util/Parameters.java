@@ -20,7 +20,6 @@ public class Parameters {
   private double q = 1.0;
   private boolean runDist = false;
   private boolean runK = false;
-  private boolean runEW = false;
   
   public Parameters(String[] line) throws ParseException {
   
@@ -84,11 +83,6 @@ public class Parameters {
       .build();
     options.addOption(runKOpt);
     
-    Option runEWOpt = Option.builder("runEW")
-      .desc("Run error / width evaluation")
-      .build();
-    options.addOption(runEWOpt);
-    
     commandLine = parser.parse(options, line);
     
     if (commandLine.hasOption("help")) {
@@ -124,10 +118,6 @@ public class Parameters {
       runK = true;
     }
     
-    if (commandLine.hasOption("runEW")) {
-      runEW = true;
-    }
-    
   }
   
   public String getDataset() { return dataset; }
@@ -137,7 +127,6 @@ public class Parameters {
   public double getQ() { return q; }
   public boolean runDistEvaluation() { return runDist; }
   public boolean runKEvaluation() { return runK; }
-  public boolean runEWEvaluation() { return runEW; }
   
   public String toString() {
     StringBuilder bld = new StringBuilder();
@@ -149,7 +138,6 @@ public class Parameters {
     bld.append("Value of q: " + q + ln);
     bld.append("Run several distributions: " + runDist + ln);
     bld.append("Run k evaluation: " + runK + ln);
-    bld.append("Run error / width evaluation: " + runEW + ln);
     return bld.toString();
   }
 

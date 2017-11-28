@@ -22,7 +22,6 @@ OUTPUT_DIRECTORY=output/ml-100k/cosineCM_${q}_dist
 CM="-CM"          # Use count-min sketch based similarity, cosine otherwise
 DIST="-runDist"    # Compute several distributions of the dataset
 #KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
-#EWEVAL="-runEW"   # Run error / width evaluation
 
 
 ################################################################################
@@ -43,7 +42,6 @@ $CM
 -q $q
 $DIST
 $KEVAL
-$EWEVAL
 "
 
 export SBT_OPTS="-Xmx256M -Xms256M"

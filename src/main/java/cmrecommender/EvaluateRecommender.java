@@ -46,9 +46,8 @@ class EvaluateRecommender {
     if (params.useCM()) {
       CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
       sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
-      double epsilon = sketchConfig.getEpsilon();
-      double delta = sketchConfig.getDelta();
-      userSimilarity = new CosineCM(dataModel, epsilon, delta, hfBuilder);
+      if (params.runDistEvaluation()) { runDistEval(sketchConfig, dataModel, params); }
+      userSimilarity = new CosineCM(dataModel, sketchConfig, hfBuilder);
     } else {
       userSimilarity = new CosineSimilarity(dataModel);
     }
@@ -118,108 +117,25 @@ class EvaluateRecommender {
    * EVALUATION OF SEVERAL DISTRIBUTIONS IN THE DATASET
    ****************************************************************************/
   
-  /** Run the evaluation of the profile size distribution in the dataset */
-  private static void runDistEval(DataModel dataModel, Parameters params) throws TasteException {
-    log.info("Start evaluation of profile distribution");
+  /** Run the evaluation of several distributions in the dataset */
+  private static void runDistEval(CountMinSketchConfig sketchConfig, DataModel dataModel, Parameters params) throws TasteException {
+    log.info("Start logging of distributions");
     Logger logDIST = LoggerFactory.getLogger("DIST");
-    int u = dataModel.getNumItems(), n = 0, w = 0, d = 0;
-    if (params.useCM()) {
-			CountMinSketchConfig sketchConfig = new CountMinSketchConfig(params.getQ());
-			sketchConfig.configure(dataModel, params.getDataset().replace("/", "-"));
-			double epsilon = sketchConfig.getEpsilon();
-			double delta = sketchConfig.getDelta();
-			w = (int) Math.ceil(Math.exp(1) / epsilon);
-			d = (int) Math.ceil(Math.log(1 / delta));
-		}
+    int u = dataModel.getNumItems();
     LongPrimitiveIterator it = dataModel.getUserIDs();
     while (it.hasNext()) {
       long userID = it.next();
-      n = dataModel.getPreferencesFromUser(userID).length();
-      if (params.useCM()) {
-				double beta = CountMinSketchConfig.probaNotExactRetrieve(w, d, n);
-				double p = CountMinSketchConfig.probaInserted(w, d, n, u);
-				double fmeasure = CountMinSketchConfig.Fmeasure(w, d, n, u, params.getQ());
-				logDIST.info("{},{},{},{}", n, beta, p, fmeasure);
-			} else {
-				logDIST.info("{}", n);
-			}
-    }
-    log.info("End of evaluation of profile distribution");
-  }
-  
-  
-  /*****************************************************************************
-   * EVALUATION OF THE ERROR BETWEEN COSINE AND COSINECM FOR DIFFERENT WIDTHS
-   ****************************************************************************/
-  
-  static class RunErrorWidthEval implements Runnable {
-    
-    private final DataModel dataModel;
-    private final double epsilon;
-    private final double delta;
-    private final int width;
-    private final Logger logEW;
-    private final UserSimilarity sim;
-    private final HashFunctionBuilder hfBuilder;
-    
-    RunErrorWidthEval(DataModel model, int w, double del, Logger logger,
-                      UserSimilarity cosSim, HashFunctionBuilder hfBuilder_) {
-      dataModel = model;
-      width = w;
-      epsilon = Math.exp(1) / (double) width;
-      delta = del;
-      logEW = logger;
-      sim = cosSim;
-      hfBuilder = hfBuilder_;
-    }
-    
-    public void run() {
-      try {
-        UserSimilarity simCM = new CosineCM(dataModel, epsilon, delta, hfBuilder);
-        LongPrimitiveIterator it1 = dataModel.getUserIDs();
-        while (it1.hasNext()) {
-          long userID1 = it1.next();
-          LongPrimitiveIterator it2 = dataModel.getUserIDs();
-          while (it2.hasNext()) {
-            long userID2 = it2.next();
-            if ((userID1 + userID2) % 100 == 0) { // Consider only some couples
-              double refValue = sim.userSimilarity(userID1, userID2);
-              double value = simCM.userSimilarity(userID1, userID2);
-              double error = Math.abs(refValue - value);
-              synchronized(logEW) {
-                logEW.info("{},{}", error, width);
-              }
-            }
-          }
-        }
-      } catch (TasteException ex) {
-        log.error("TasteException: {}", ex.getMessage());
-      }
-    }
-  }
-  
-  /** Run the evaluation of the error bewteen cosine and cosineCM with different widths */
-  private static void runErrorWidthEval(DataModel dataModel, Parameters params, HashFunctionBuilder hfBuilder) throws TasteException {
-    log.info("Start evaluation error / width");
-    Logger logEW = LoggerFactory.getLogger("EW");
-    UserSimilarity sim = new CosineSimilarity(dataModel);
-    double delta = Math.exp(- 11.0);
-    int A = 10, B = 1000, H = 25;
-    ArrayList<Thread> threads = new ArrayList<Thread>((B - A) / H + 1);
-    for (int width = A; width < B; width += H) {
-      log.info("Processing width {} in a new thread", width);
-      Thread t = new Thread(new RunErrorWidthEval(dataModel, width, delta, logEW, sim, hfBuilder));
-      threads.add(t);
-      t.start();
-    }
-    for (Thread t : threads) { 
-      try {
-        t.join();
-      } catch (InterruptedException ex) {
-        log.error("InterruptedException: {}", ex.getMessage());
-      }
-    }
-    log.info("End of evaluation error / width");
+      int n = dataModel.getPreferencesFromUser(userID).length();
+			double epsilon = sketchConfig.getEpsilon(userID);
+			double delta = sketchConfig.getDelta(userID);
+			int w = (int) Math.ceil(Math.exp(1) / epsilon);
+			int d = (int) Math.ceil(Math.log(1 / delta));
+			double beta = CountMinSketchConfig.probaNotExactRetrieve(w, d, n);
+			double p = CountMinSketchConfig.probaInserted(w, d, n, u);
+			double fmeasure = CountMinSketchConfig.Fmeasure(w, d, n, u, params.getQ());
+			logDIST.info("{},{},{},{}", n, beta, p, fmeasure);
+		}
+		log.info("End of evaluation of profile distribution");
   }
   
   
@@ -242,9 +158,7 @@ class EvaluateRecommender {
       DataModel dataModel = new FileDataModel(new File(params.getDataset()));
       
       /* Run the different evaluations requested */
-      if (params.runDistEvaluation()) { runDistEval(dataModel, params); }
       if (params.runKEvaluation()) { runKEval(dataModel, params, hfBuilder); }
-      if (params.runEWEvaluation()) { runErrorWidthEval(dataModel, params, hfBuilder); }
       
     } catch (TasteException ex) {
       log.error("TasteException: {}", ex.getMessage());
