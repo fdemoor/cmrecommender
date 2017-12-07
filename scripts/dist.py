@@ -11,8 +11,8 @@ X_LABEL = "Number of items in profile"
 Y1_LABEL = "Number of users"
 Y2_LABEL = "CDF"
 
-q = 1.0
-basedir = "../output/ml-100k/cosineCM_" + str(q) + "_dist/"
+q = 0.25
+basedir = "../output/ml-1m_filtered/cosineCM_" + str(q) + "_kEval/"
 filename = "dist.csv"
 
 
@@ -60,7 +60,7 @@ def plotTradeoff(BETAP, ax):
   ax.set_ylim([-1, 1])
   ax.set_yticklabels([str(abs(x)) for x in ax.get_yticks()])
   ax.set_xlabel("Users")
-  ax.set_ylabel("Bottom: Inserted probability\n Top: Non-exact retrieve probability")
+  ax.set_ylabel("Bottom: Guassibility\n Top: Non-exact retrieve probability")
   ax.set_xticklabels([])
 
 

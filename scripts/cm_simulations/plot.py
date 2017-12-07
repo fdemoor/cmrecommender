@@ -47,7 +47,7 @@ labels = {      'error_inserted': 'Error on inserted keys',
                 'width': 'Width',
                 'depth': 'Depth',
                 'fmeasure': 'F-Measure',
-                'proba_inserted': 'Inserted probability' }
+                'proba_inserted': 'Guessability' }
                 
 
 def plot_init():
