@@ -2,6 +2,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib
+import statistics
 
 
 ################################################################################
@@ -12,7 +13,7 @@ Y1_LABEL = "Number of users"
 Y2_LABEL = "CDF"
 
 q = 0.25
-basedir = "../output/ml-1m_filtered/cosineCM_" + str(q) + "_kEval/"
+basedir = "../output/ml-25k/cosineCM_" + str(q) + "_kEval/"
 filename = "dist.csv"
 
 
@@ -72,6 +73,11 @@ def main():
 
     # Retrieve data from file
     N, BETAP = parseDist(basedir + filename)
+    
+    print "**********************************"
+    print "Mean of dataset profile sizes is:", statistics.mean(N)
+    print "Stdev of dataset profile sizes is:", statistics.stdev(N)
+    print "**********************************"
 
     # Profile size distribution
     f1, ax1 = plt.subplots(1, 1, figsize=(10, 6))
