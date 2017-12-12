@@ -21,12 +21,12 @@ OUTPUT_DIRECTORY=output/ml-100k/cosineCM_${q}_dist
 
 CM="-CM"          # Use count-min sketch based similarity, cosine otherwise
 DIST="-runDist"    # Compute several distributions of the dataset
-#KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
+KEVAL="-runK"     # Run evaluation with different k (as in kNN) values
 
 
 ################################################################################
 # Create necessary folders if not existing                                     #
-# Generate the parameter string                                               #
+# Generate the parameter string                                                #
 # Set some JVM options                                                         #
 # Run the experiment                                                           #
 ################################################################################

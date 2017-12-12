@@ -5,8 +5,8 @@ filename = "ratings.csv"
 path = "../datasets/" + dataset + "/"
 dest = "../datasets/" + dataset + "_filtered/"
 
-mid = 100
-d = 5
+mid = 100 # Middle value
+d = 5 # Accepted values will be in the range [mid - d, mid + d]
 
 os.system('mkdir -p ' + dest)
 
