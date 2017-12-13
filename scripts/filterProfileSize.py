@@ -1,12 +1,12 @@
 import os
 
-dataset = "ml-1m"
+dataset = "ml-100k"
 filename = "ratings.csv"
 path = "../datasets/" + dataset + "/"
 dest = "../datasets/" + dataset + "_filtered/"
 
-mid = 100 # Middle value
-d = 5 # Accepted values will be in the range [mid - d, mid + d]
+mid = 75 # Middle value
+d = 35 # Accepted values will be in the range [mid - d, mid + d]
 
 os.system('mkdir -p ' + dest)
 

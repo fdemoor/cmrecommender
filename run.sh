@@ -9,9 +9,9 @@
 DATASET_PATH=datasets/ml-100k/ratings.csv
                   # Path to the dataset .csv file
 NB_FOLDS=10       # Number of folds in RMSE cross-validation
-SEED=7263789638   # Seed for PRNG (currently not used)
+SEED=7263789638   # Seed for PRNG
 q=1.0        # Privacy/accuracy trade-off parameter
-OUTPUT_DIRECTORY=output/ml-100k/cosineCM_${q}_dist
+OUTPUT_DIRECTORY=output/ml-100k/cosineCM_${q}_kEval
 #OUTPUT_DIRECTORY=output/ml-100k/cosine_kEval
                   # Path to the folder where to output logs
 

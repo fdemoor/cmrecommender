@@ -43,7 +43,7 @@ Simply type `python filterProfileSize.py` to run.
 
 ## Python Scripts (*/scripts/cm_simulations* folder)
 
-You can run one of the *run_*.py* scripts.
+You can run one of the *run_.py* scripts.
 Various parameters can be set at the beginning of the script.
 The result is output in a serialized file *data.p*.
 You can then type `python plot_results.py <data.p>` to produce the graphs.
