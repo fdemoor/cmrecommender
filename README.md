@@ -23,7 +23,7 @@ Parameters can be changed by editing the values of some variables in the script 
 ### plot.py
 
 This script plots the RMSE values.
-You can change specify the folder where the data is located (*basedir* variable on line 13) and the names of the different data categories you want to plot (*dirs* variable on line 64).
+You can specify the folder where the data is located (*basedir* variable on line 13) and the names of the different data categories you want to plot (*dirs* variable on line 64).
 Simply type `python plot.py` to run.
 The output plots will be saved in the data base folder.
 
@@ -42,3 +42,8 @@ The parameters can be changed in the first lines of the script, i.e. the input d
 Simply type `python filterProfileSize.py` to run.
 
 ## Python Scripts (*/scripts/cm_simulations* folder)
+
+You can run one of the *run_*.py* scripts.
+Various parameters can be set at the beginning of the script.
+The result is output in a serialized file *data.p*.
+You can then type `python plot_results.py <data.p>` to produce the graphs.
